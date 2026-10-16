@@ -33,6 +33,22 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 @keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
 .breath { height: 40svh; }
 
+/* Layout variations */
+.layout-left .sticky { justify-items: start; }
+.layout-left .beat { text-align: left; }
+.layout-right .sticky { justify-items: end; }
+.layout-right .beat { text-align: right; }
+.layout-zoom .beat { transform-origin: 50% 50%; will-change: transform, opacity; }
+.layout-scatter .mask { overflow: visible; }
+.layout-marquee .sticky { justify-items: start; padding: 0; }
+.layout-marquee .beat { max-width: none; white-space: nowrap; font-size: clamp(6rem, 34vw, 18rem); font-weight: 800; letter-spacing: -0.06em; line-height: 1; will-change: transform; }
+
+.row-sec { position: relative; }
+.row-sec .sticky { padding: 0; place-items: center start; }
+.track { display: flex; height: 100%; will-change: transform; }
+.panel { position: relative; flex: 1 1 0; display: grid; place-items: center; padding: 0 1.5rem; }
+.panel-count { position: absolute; bottom: 7svh; font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+
 .finale-sec { height: 400svh; position: relative; }
 .finale-sec .sticky { padding: 0; z-index: 2; }
 .finale { position: absolute; inset: 0; overflow: hidden; }
