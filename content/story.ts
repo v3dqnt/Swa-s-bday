@@ -40,6 +40,9 @@ export const story = {
     { text: "So again, I'm really, truly thankful. For every one of those moments, and for all the happiness." },
     { text: "Thank you, Swara.", style: "title" },
   ] as { text: string; style?: "title" | "soft" }[],
+  imagine: [
+    { text: "This is what my imagination makes of a perfect ending to your birthday." },
+  ] as { text: string; style?: "title" | "soft" }[],
   timeline: [] as { date: string; caption: string; photo: string }[],
   loves: [] as { word: string; note: string }[],
   letter: "",

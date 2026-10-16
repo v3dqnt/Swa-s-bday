@@ -26,7 +26,7 @@ export default function Orb() {
         });
         target.onResize(() => orb.set({ params: { texel: target.texelSize } }));
         const onMove = (e: PointerEvent) =>
-          orb.set({ params: { mouse: [e.clientX / innerWidth, 1 - e.clientY / innerHeight] } });
+          orb.set({ params: { mouse: [e.clientX / innerWidth, e.clientY / innerHeight] } });
         addEventListener("pointermove", onMove);
         const time = clock(gpu);
         const loop = frameLoop(gpu, (frame) => {
