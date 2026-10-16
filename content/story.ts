@@ -1,12 +1,15 @@
 // All personal copy lives here.
 //
-// style:  "title" = huge, letter by letter · "soft" = quieter aside
-// layout: how the line moves as she scrolls (default "center")
-//   center · left · right  — words rise out of masks (left/right also drift sideways)
-//   zoom     — grows into place, then flies past the camera
-//   scatter  — words fly in from everywhere and assemble, then break apart
-//   marquee  — one giant line sliding across the screen
-//   { row }  — a run of lines that scrolls sideways, panel by panel
+// The site is one 2.5D space: each line sits somewhere in 3D and a camera flies
+// to it as she scrolls (see lib/camera.ts).
+// style:  "title" = huge · "soft" = quieter aside
+// layout: the camera move for this line (default: cycles through straight, floor,
+//         turn, rise, roll and ceiling shots)
+//   left · right  — the line is turned sideways; the camera swings round to face it
+//   zoom     — seen from far off, then the camera flies straight through it
+//   scatter  — words float at different depths and only line up from one spot
+//   marquee  — one giant line the camera tracks along
+//   { row }  — lines on the walls of a corner; the camera turns from one to the next
 // tone:   background shade while the line is on screen (subtle shifts of her green)
 // cue:    soundtrack checkpoint; from here on the chosen record plays its track for
 //         this cue (see content/music.ts)
