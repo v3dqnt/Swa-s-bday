@@ -1,6 +1,6 @@
 // All personal copy lives here. Fill in as the story comes together.
 export const story = {
-  name: "Swa",
+  name: "Swara",
   nickname: "",
   birthday: "",
   timeline: [] as { date: string; caption: string; photo: string }[],

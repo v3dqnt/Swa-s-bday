@@ -9,7 +9,7 @@ export default function Gate({ onOpen }: { onOpen: () => void }) {
     <main className="gate">
       <Orb />
       <div className="gate-ui">
-        <p>{story.name}, this is for you.</p>
+        <p>{story.name}, this is for you. No strings.</p>
         <button onClick={onOpen}>Open</button>
       </div>
     </main>

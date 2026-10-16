@@ -1,63 +1,46 @@
-# Swa's Birthday Website: Storyboard (v0.1)
+# For Swara: Gratitude Website Storyboard (v0.2)
 
-A single scrolling journey, about 3 minutes end to end, mobile-first (she'll likely open it on her phone). Each scene is one screen of scroll or one tap. `[ ]` marks personal content only you can supply.
+**Intent:** Not an apology and not a plea. A thank-you. "Things didn't work out, and I'm still deeply grateful for the time we had and the warmth and fulfilment you gave me, even if it was brief."
 
-## Tech direction
-- **Hosting:** Vercel (static deploy, optional password or unlisted link).
-- **Motion/GPU:** WebGL shaders (three.js / react-three-fiber or raw GLSL) for the hero and transitions. GSAP ScrollTrigger drives scroll choreography. Fallback to CSS for low-power phones and `prefers-reduced-motion`.
-- **Stack:** Next.js + TypeScript.
-- **Palette/mood:** `[ ]` TBD (suggest: warm dusk gradient, rose and gold, soft grain).
+**Tone rules**
+- Warm, calm, sincere. Past tense for the relationship, present tense for the gratitude.
+- No asks: no "come back", no "give me a chance", no questions that need an answer.
+- No guilt, no pressure. She can close the page at any point, and nothing tracks or nags her.
+- Short. About 2 minutes. Specific memories beat grand statements.
 
----
-
-## Scene 0: Gate (0:00)
-**Screen:** Dark screen, a single softly pulsing light/orb. Text: *"Swa, this is for you."* Button: **Open**.
-**Motion:** Orb is a GPU particle/fluid shader that reacts to touch and cursor.
-**Why:** The tap unlocks audio (browsers block autoplay) and builds anticipation.
-
-## Scene 1: The Wake-up (0:05)
-**Screen:** Orb blooms into a gradient sky. Big type fades in: *"Happy Birthday, [nickname]"*, with the date `[ ]`.
-**Motion:** Shader gradient flow, letters reveal one by one, confetti-like particles drift upward.
-**Audio:** `[song]` fades in softly.
-
-## Scene 2: How we began (0:20)
-**Screen:** Scroll-driven timeline. Three to five photo cards, each with a date and a one-line caption (how we met, first date, first trip...).
-**Motion:** Photos drift in a 3D parallax stack, with a liquid-distortion hover/tap transition between them.
-**Content needed:** `[5 photos + captions]`
-
-## Scene 3: Things I love about you (1:00)
-**Screen:** Floating words/phrases orbiting in 3D (*"your laugh"*, *"how you..."*). Tap one to see a short note.
-**Motion:** Interactive 3D word cloud; each tap triggers a ripple shader.
-**Content needed:** `[8-10 short things]`
-
-## Scene 4: The letter (1:40)
-**Screen:** A sealed envelope. Tap to open, and a handwritten-style letter types out line by line.
-**Motion:** Envelope fold animation, subtle paper texture, a slow camera push-in.
-**Content needed:** `[the letter, about 120-200 words]`
-
-## Scene 5: Little game / surprise (2:20) *(optional)*
-**Screen:** Make a wish: she blows on the mic (or taps) to extinguish candles on a cake, or collects floating hearts for a count-up.
-**Motion:** Candle flames are a GPU flame shader; extinguishing releases smoke and fireworks.
-
-## Scene 6: The gift reveal (2:45)
-**Screen:** Fireworks, then: *"Your real gift is..."* with a button or ticket reveal `[ ]` (or a "see you at 8pm" reveal).
-**Motion:** Full-screen firework particle system, then a clean fade to the reveal card.
-
-## Scene 7: Outro (3:00)
-**Screen:** Quiet closing line: *"I love you, [name]."* Replay button, plus a "save this memory" link.
-**Motion:** Slow starfield, music fades out.
+**Tech:** Next.js on Vercel, vgpu (WebGPU) for the visuals, GSAP for scroll. A CSS fallback is already built for devices without WebGPU.
+**Mood:** Soft and quiet. Dusk and ember colours, slow motion, nothing flashy.
 
 ---
 
-## Flow diagram
-```
-Gate -> Wake-up -> Timeline -> Love list -> Letter -> [Candle game] -> Gift reveal -> Outro
- tap     auto       scroll       tap/scroll    tap        mic/tap         tap          replay
-```
+## Scene 0: Gate
+Dark screen, a soft glowing orb that follows touch. Text: *"Swara, this is for you. No strings."* Button: **Open**. (Already built.)
+
+## Scene 1: Hello
+The orb gently expands into a warm gradient. One line: *"I wanted to say something, and I wanted to say it properly."* If it's her birthday, add a small *"Happy birthday."* with no fanfare.
+
+## Scene 2: What I remember
+Three to five moments as slow-fading cards: a date, a photo if she'd be comfortable with it, and one sentence each. Gentle parallax, no flashy transitions.
+`[you tell me the moments]`
+
+## Scene 3: What you gave me
+Individual words rise and dissolve like embers: *warmth, laughter, calm, being understood...* Each has one short line about what it meant.
+`[you tell me the words]`
+
+## Scene 4: The letter
+A plain, quiet page where the letter types itself out. Core of the message: things didn't work out, and I understand that. Still, thank you, truly, for the warmth and fulfilment you gave me, however brief.
+
+## Scene 5: Closing
+*"Thank you, Swara. Wishing you all the happiness."* The light slowly dims. No replay or share buttons, just a quiet end.
+
+---
+
+## Cut from the earlier birthday draft
+The candle game, the gift reveal, fireworks, and any "I love you" line. They don't fit this message.
 
 ## Open questions
-1. "Vercel vgpu": do you mean Vercel hosting plus WebGL/GPU shaders (my assumption), or something else?
-2. Her name/nickname, birthday date, and the tone (romantic, playful, funny)?
-3. Which scenes do you want to keep, cut, or reorder? Is the candle game in?
-4. Do you have photos, a song, and a gift or surprise to reveal?
-5. Delivery: a link she opens at a set time, or shown in person?
+1. Is it for her birthday, or sent on its own? If it's her birthday, do we mention it?
+2. What are 3-5 specific moments you want in Scene 2? Are there photos she'd be okay seeing?
+3. What did she give you that stands out? A trait, a habit, a way she made you feel?
+4. Did the earlier apology site say things we should avoid repeating or acknowledge?
+5. How will she receive it: a link by message, or something else?
