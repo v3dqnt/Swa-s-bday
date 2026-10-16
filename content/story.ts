@@ -15,13 +15,15 @@
 // scene:  background world from this line on (carries forward until changed):
 //         "abstract" rings · "ribbons" silk bands · "topo" contour lines · "bokeh" light orbs
 //         "petals" falling petals · "city" night skyline · "jungle" leaves · "meadow" fireflies
+// cast:   a character sticker standing behind the line (public/characters/<name>.png)
 // cue:    soundtrack checkpoint; from here on the chosen record plays its track for
 //         this cue (see content/music.ts)
 
 export type Layout = "center" | "left" | "right" | "zoom" | "scatter" | "marquee";
 export type Cue = "hello" | "birthday" | "thanks" | "hard" | "memories" | "finale";
 export type Scene = "abstract" | "city" | "jungle" | "meadow" | "ribbons" | "topo" | "bokeh" | "petals";
-export type Beat = { text: string; style?: "title" | "soft"; layout?: Layout; tone?: string; cue?: Cue; scene?: Scene };
+export type Cast = "her" | "her-turn" | "her-laugh" | "him" | "together" | "close";
+export type Beat = { text: string; style?: "title" | "soft"; layout?: Layout; tone?: string; cue?: Cue; scene?: Scene; cast?: Cast };
 export type Row = Beat | { row: Beat[]; tone?: string; cue?: Cue; scene?: Scene };
 
 const tone = {
@@ -51,10 +53,10 @@ export const story = {
       scene: "petals",
       row: [
         { text: "You started with tiny little palms and a small torso." },
-        { text: "And now, look at you.", style: "title" },
+        { text: "And now, look at you.", style: "title", cast: "her" },
       ],
     },
-    { text: "A fine young woman. Beautiful, sincere, and, no matter what anyone says, *charming.*", tone: "#1a3310" },
+    { text: "A fine young woman. Beautiful, sincere, and, no matter what anyone says, *charming.*", tone: "#1a3310", cast: "her-turn" },
     { text: "Life threw so many challenges and hurdles your way.", layout: "scatter", tone: tone.dim, scene: "topo" },
     { text: "And you met them with *compassion,* *bravery,* and *sincerity.*", layout: "left", tone: "#15290b", scene: "ribbons" },
     { text: "Not everyone stays soft when the world asks them to harden. You did.", style: "soft", layout: "right", tone: "#15290b" },
@@ -74,10 +76,10 @@ export const story = {
     },
     { text: "Everyone feels happy when something good happens.", layout: "left", tone: "#142609" },
     { text: "But there is a *different* kind of happiness.", layout: "right", tone: "#142609", scene: "bokeh" },
-    { text: "The kind where you find yourself giggling, and looking at the world really *vividly.*", tone: "#1b380f", scene: "ribbons" },
+    { text: "The kind where you find yourself giggling, and looking at the world really *vividly.*", tone: "#1b380f", cast: "her-laugh", scene: "ribbons" },
     { text: "The colours *pop.* Everything feels *dreamy.*", layout: "zoom", tone: tone.vivid, scene: "abstract" },
     { text: "Even though it was ephemeral, I am *grateful* for every second you spent with me.", tone: "#172c0c", scene: "meadow" },
-    { text: "Every time I looked at you beside me, I felt *awe* and *disbelief.*", layout: "left", tone: "#172c0c", scene: "petals" },
+    { text: "Every time I looked at you beside me, I felt *awe* and *disbelief.*", layout: "left", cast: "together", tone: "#172c0c", scene: "petals" },
     { text: "That a girl so *beautiful* and so *lovely* was right here, right next to me.", layout: "right", tone: tone.warm },
     { text: "I can't thank you enough.", style: "title", tone: tone.warm, scene: "bokeh" },
     { text: "Sure, there were times I was angry, annoyed, frustrated.", layout: "scatter", tone: tone.dim, cue: "hard", scene: "topo" },
@@ -87,7 +89,7 @@ export const story = {
       cue: "memories",
       scene: "meadow",
       row: [
-        { text: "I only remember the *good* *ones.* Just you and me, and your shimmering, bright face in front of me." },
+        { text: "I only remember the *good* *ones.* Just you and me, and your shimmering, bright face in front of me.", cast: "close" },
         { text: "Nothing in the world bothered me in those moments." },
       ],
     },

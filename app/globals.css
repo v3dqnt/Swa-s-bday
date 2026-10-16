@@ -84,6 +84,17 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .word.hl { position: relative; z-index: 0; }
 .hl-bg { position: absolute; left: -0.1em; right: -0.1em; top: 0.14em; bottom: 0; z-index: -1; border-radius: 0.14em; background: var(--leaf); transform-origin: left; transform: scaleX(0); }
 .underline { position: absolute; left: 10%; right: 10%; bottom: -18px; height: 10px; border-radius: 5px; background: var(--leaf); transform-origin: left; transform: scaleX(0); }
+/* Character stickers: stand behind the line, cream outline like a sticker, lit by the scene. */
+.cast { position: absolute; left: 50%; top: calc(100% + 22px); transform: translate3d(-50%, 0, -140px); transform-style: preserve-3d; pointer-events: none; }
+.cast-in { display: block; transform-origin: 50% 100%; }
+.cast img { display: block; height: min(48svh, 440px); width: auto; transform-origin: 50% 100%; animation: breathe 4.2s ease-in-out infinite;
+  filter: drop-shadow(2.5px 0 0 var(--cream)) drop-shadow(-2.5px 0 0 var(--cream)) drop-shadow(0 2.5px 0 var(--cream)) drop-shadow(0 -2.5px 0 var(--cream))
+          drop-shadow(0 0 18px color-mix(in srgb, #8fcf72 30%, transparent)) drop-shadow(0 22px 26px var(--xs)); }
+.cast-her-laugh img { height: min(30svh, 290px); border-radius: 0 0 40% 40%; -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
+.cast-close img { height: min(36svh, 340px); -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
+@keyframes breathe { 0%, 100% { transform: rotate(-0.6deg) scaleY(1); } 50% { transform: rotate(0.6deg) scaleY(1.012); } }
+@media (prefers-reduced-motion: reduce) { .cast img { animation: none; } }
+
 .decor { position: absolute; transform-style: preserve-3d; pointer-events: none; }
 .pop { display: block; }
 .bob { display: block; animation: bob 3.2s ease-in-out infinite; overflow: visible; }
@@ -112,7 +123,9 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .finale { position: absolute; inset: 0; overflow: hidden; }
 .finale-canvas, .finale-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
 .finale-fallback { background: linear-gradient(#081404, #183410 50%, #e6dcb4 61.5%, #0b1a05 62%); }
-.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 6svh; width: min(52vw, 300px); opacity: 0; filter: drop-shadow(0 0 7px rgba(242, 238, 214, 0.5)); }
+.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 0; width: min(86vw, 440px); opacity: 0;
+  -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent);
+  filter: drop-shadow(0 0 2px rgba(255, 220, 160, 0.9)) drop-shadow(0 0 22px rgba(255, 200, 120, 0.45)); }
 .finale-caption { position: absolute; top: 14svh; left: 0; right: 0; padding: 0 1.5rem; text-align: center; font-size: clamp(2.2rem, 10vw, 4.5rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
 
 

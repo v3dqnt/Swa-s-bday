@@ -171,8 +171,10 @@ export function buildTimeline(shots: Shot[], widths: number[]) {
 
   shots.forEach((s, i) => {
     const h = holdFor(s.kind, { width: widths[i] ?? 0 });
-    const a = relative(s.pose, h.from);
-    const b = relative(s.pose, h.to);
+    // A line with a character standing under it: frame lower so both fit.
+    const lift = s.beat.cast ? 170 : 0;
+    const a = relative(s.pose, { ...h.from, y: (h.from.y ?? 0) + lift });
+    const b = relative(s.pose, { ...h.to, y: (h.to.y ?? 0) + lift });
     const travelLen = i === 0 ? 1.5 : s.kind === "corner" && shots[i - 1]?.kind === "corner" ? 1.1 : 1.0;
     push(prev, a, travelLen, true, i);
     push(a, b, h.len, false, i, h.settle);

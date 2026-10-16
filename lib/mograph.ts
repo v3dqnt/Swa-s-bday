@@ -56,6 +56,16 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
   const underline = item.querySelector(".underline");
   if (underline) tl.fromTo(underline, { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, "<0.1");
 
+  // Character sticker wipes up from the bottom with a little overshoot.
+  const cast = item.querySelector(".cast-in");
+  if (cast)
+    tl.fromTo(
+      cast,
+      { clipPath: "inset(100% -20% -20% -20%)", y: 60, scale: 0.92 },
+      { clipPath: "inset(-20% -20% -20% -20%)", y: 0, scale: 1, duration: 0.9, ease: "back.out(1.6)" },
+      0.05
+    );
+
   const pops = item.querySelectorAll(".pop");
   if (pops.length) tl.fromTo(pops, { scale: 0, rotate: -140 }, { scale: 1, rotate: 0, duration: 0.7, ease: "back.out(3)", stagger: 0.07 }, 0.15);
 

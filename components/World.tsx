@@ -295,6 +295,14 @@ export default function World() {
             >
               <KineticLine className={`beat ${sh.beat.style ?? ""}`} text={sh.beat.text} letters={fxFor(sh, i) === "letters"} />
               {sh.beat.style === "title" && <span className="underline" />}
+              {sh.beat.cast && (
+                <span className={`cast cast-${sh.beat.cast}`}>
+                  <span className="cast-in">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/characters/${sh.beat.cast}.png`} alt="" draggable={false} />
+                  </span>
+                </span>
+              )}
               <Decor shot={sh} index={i} />
             </div>
           ))}
