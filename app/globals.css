@@ -9,3 +9,9 @@ button:hover { background: var(--accent); color: var(--bg); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 .orb-fallback { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, #ff8c99 0, #3a1030 12%, #0d0614 45%); animation: pulse 3s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.8; } }
+.cine { position: fixed; inset: 0; display: grid; place-items: center; z-index: 2; cursor: pointer; padding: 0 1.5rem; }
+.bar { position: absolute; left: 0; right: 0; height: 11vh; background: #000; }
+.bar.top { top: 0; } .bar.bottom { bottom: 0; }
+.beat { opacity: 0; max-width: 28ch; text-align: center; font-size: clamp(1.4rem, 5.5vw, 2.4rem); line-height: 1.35; text-shadow: 0 2px 24px rgba(0,0,0,.6); }
+.beat.title { font-size: clamp(2rem, 9vw, 4rem); letter-spacing: .02em; max-width: 14ch; }
+.beat.soft { font-style: italic; opacity: 0; color: #f3d6d2; }
