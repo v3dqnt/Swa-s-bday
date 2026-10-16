@@ -5,6 +5,8 @@ import Lenis from "lenis";
 import Deck from "./Deck";
 import Finale from "./Finale";
 import KineticLine from "./KineticLine";
+import Decor from "./Decor";
+import { WIPES, arrival, fxFor, playWipe, punch } from "@/lib/mograph";
 import { story, type Cue } from "@/content/story";
 import { experiences, type Experience } from "@/content/music";
 import { soundtrack } from "@/lib/soundtrack";
@@ -45,7 +47,8 @@ export default function World() {
   const deckItem = useRef<HTMLDivElement>(null);
   const items = useRef<(HTMLDivElement | null)[]>([]);
   const label = useRef<HTMLSpanElement>(null);
-  const timeline = useRef<{ segs: Segment[]; total: number; finaleStart: number } | null>(null);
+  const timeline = useRef<{ segs: Segment[]; total: number; finaleStart: number; windows: [number, number][] } | null>(null);
+  const arrivals = useRef<gsap.core.Timeline[]>([]);
   const vh = useRef(1);
 
   // Picker entrance.
@@ -93,13 +96,30 @@ export default function World() {
           p.style.transform = `translate3d(${cx * (s - 1)}px, ${cy * (s - 1)}px, ${dz}px) scale(${s})`;
         });
       });
-      timeline.current = buildTimeline(shots, widths);
+      const tl = buildTimeline(shots, widths);
+      // Each line is "on stage" from just past the middle of the flight towards it
+      // until just before the middle of the flight away from it.
+      const travels = tl.segs.filter((g) => g.travel && g.shot >= 0);
+      const windows = shots.map((_, i): [number, number] => {
+        const a = travels.find((g) => g.shot === i)!;
+        const b = travels.find((g) => g.shot === i + 1)!;
+        return [a.start + a.len * 0.55, b.start + b.len * 0.45];
+      });
+      timeline.current = { ...tl, windows };
       setSpacer((timeline.current.total + 1) * innerHeight);
     };
     build();
     document.fonts?.ready.then(build);
     addEventListener("resize", build);
     return () => removeEventListener("resize", build);
+  }, [shots]);
+
+  // Edit-style entrance for every line (paused; played as the camera arrives).
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      arrivals.current = items.current.map((el, i) => arrival(el!, fxFor(shots[i], i)));
+    }, root);
+    return () => ctx.revert();
   }, [shots]);
 
   // Smooth scrolling once the story begins.
@@ -121,6 +141,7 @@ export default function World() {
   // background tone, chapter label, soundtrack cues and the finale handoff.
   useEffect(() => {
     let current = -2;
+    const onStage = shots.map(() => false);
     const finaleEl = root.current!.querySelector<HTMLElement>(".finale-layer")!;
 
     // Opacity flattens 3D in Chrome, so items that must stay 3D (the deck, the
@@ -129,7 +150,10 @@ export default function World() {
     const targetsOf = (el: HTMLElement) => {
       let t = fadeTargets.get(el);
       if (!t) {
-        t = el.classList.contains("kind-scatter") ? [...el.querySelectorAll<HTMLElement>(".piece")] : el === deckItem.current ? [] : [el];
+        t =
+          el === deckItem.current ? []
+          : el.classList.contains("kind-scatter") ? [...el.querySelectorAll<HTMLElement>(".piece")]
+          : ([...el.children] as HTMLElement[]); // the line, its underline and each garnish
         fadeTargets.set(el, t);
       }
       return t;
@@ -161,11 +185,34 @@ export default function World() {
       });
       if (deckItem.current) fog(deckItem.current, ORIGIN, m, 3400);
 
+      // Play each line's entrance as it comes on stage; rewind it as it leaves.
+      shots.forEach((_, i) => {
+        const [a, b] = tl.windows[i];
+        const on = started && s >= a && s < b;
+        if (on === onStage[i]) return;
+        onStage[i] = on;
+        const anim = arrivals.current[i];
+        if (!anim) return;
+        if (reduced) anim.progress(on ? 1 : 0);
+        else if (on) anim.timeScale(1).play();
+        else anim.timeScale(2.2).reverse();
+      });
+
       // Which line has she reached? (past the midpoint of the flight towards it)
       let reached = -1;
       for (const g of tl.segs) if (g.travel && g.shot >= 0 && g.start + g.len * 0.5 <= s) reached = Math.max(reached, g.shot);
       if (reached !== current) {
+        const forward = reached > current && current > -2;
         current = reached;
+        // Cut-style flourishes when moving forward: mask wipes at chapter changes
+        // and every few lines, and a zoom kick when a title lands.
+        const sh = shots[reached];
+        if (forward && sh && !reduced) {
+          const prev = shots[reached - 1];
+          const newChapter = prev && prev.chapter !== sh.chapter;
+          if (reached > 0 && (newChapter || reached % 5 === 0)) playWipe(WIPES[Math.floor(reached / 5) % WIPES.length]);
+          if (sh.beat.style === "title") punch();
+        }
         const inFinale = reached >= shots.length;
         const tone = inFinale || reached < 0 ? BASE : shots[reached].tone ?? BASE;
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
@@ -221,17 +268,29 @@ export default function World() {
               ref={(el) => {
                 items.current[i] = el;
               }}
-              className={`item kind-${sh.kind}`}
+              className={`item kind-${sh.kind} fx-${fxFor(sh, i)}`}
               style={{ transform: itemTransform(sh.pose), visibility: "hidden" }}
             >
-              {sh.kind === "scatter" ? (
-                <KineticLine className={`beat ${sh.beat.style ?? ""}`} text={sh.beat.text} />
-              ) : (
-                <p className={`beat ${sh.beat.style ?? ""}`}>{sh.beat.text}</p>
-              )}
+              <KineticLine className={`beat ${sh.beat.style ?? ""}`} text={sh.beat.text} letters={fxFor(sh, i) === "letters"} />
+              {sh.beat.style === "title" && <span className="underline" />}
+              <Decor shot={sh} index={i} />
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="wipes" aria-hidden="true">
+        <div className="wipe-iris" />
+        <div className="wipe-iris2" />
+        <div className="wipe-bars">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="wipe-bar" />
+          ))}
+        </div>
+        <svg className="wipe-heart" viewBox="0 0 24 24">
+          <path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" />
+        </svg>
+        <div className="wipe-diag" />
       </div>
 
       <div className="finale-layer">

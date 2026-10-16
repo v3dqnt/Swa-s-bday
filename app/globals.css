@@ -3,6 +3,8 @@
   --cream: #f2eed6;
   --muted: rgba(242, 238, 214, 0.55);
   --line: rgba(242, 238, 214, 0.18);
+  --leaf: #8fcf72;   /* lighter green for garnish: hearts, stars, highlights */
+  --mint: #c9eba8;
 }
 * { box-sizing: border-box; margin: 0; }
 html, body { background: var(--bg); color: var(--cream); }
@@ -33,6 +35,30 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .kind-scatter .beat, .kind-scatter .beat span { transform-style: preserve-3d; backface-visibility: visible; }
 .kind-scatter .word { display: inline-block; }
 .kind-scatter .mask { overflow: visible; }
+
+/* ── Motion graphics ───────────────────────────────────────── */
+.item .mask { overflow: visible; }
+.item.fx-maskUp .mask { overflow: hidden; }
+.word.hl { position: relative; z-index: 0; }
+.hl-bg { position: absolute; left: -0.1em; right: -0.1em; top: 0.14em; bottom: 0; z-index: -1; border-radius: 0.14em; background: var(--leaf); transform-origin: left; transform: scaleX(0); }
+.underline { position: absolute; left: 10%; right: 10%; bottom: -18px; height: 10px; border-radius: 5px; background: var(--leaf); transform-origin: left; transform: scaleX(0); }
+.decor { position: absolute; transform-style: preserve-3d; pointer-events: none; }
+.pop { display: block; }
+.bob { display: block; animation: bob 3.2s ease-in-out infinite; overflow: visible; }
+@keyframes bob { 50% { transform: translateY(-9px) rotate(9deg); } }
+.confetti-origin { left: 50%; top: 50%; }
+.confetti { display: block; transform: scale(0); }
+
+.wipes { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.wipe-iris, .wipe-iris2 { position: absolute; inset: 0; visibility: hidden; }
+.wipe-iris { background: var(--leaf); }
+.wipe-iris2 { background: var(--mint); }
+.wipe-bars { position: absolute; inset: 0; display: flex; }
+.wipe-bar { flex: 1; background: var(--leaf); visibility: hidden; transform: translateY(-101%); }
+.wipe-bar:nth-child(even) { background: var(--mint); }
+.wipe-heart { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; fill: var(--leaf); visibility: hidden; }
+.wipe-diag { position: absolute; left: 50%; top: 50%; width: 260vmax; height: 150vmax; margin: -75vmax 0 0 -130vmax; visibility: hidden;
+  background: linear-gradient(90deg, var(--mint) 0 10%, var(--leaf) 10% 90%, var(--mint) 90%); }
 
 .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 1.25rem; font-size: 0.8rem; font-weight: 500; color: var(--muted); z-index: 6; pointer-events: none; }
 .progress { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; background: var(--cream); transform-origin: left; transform: scaleX(0); z-index: 6; }
