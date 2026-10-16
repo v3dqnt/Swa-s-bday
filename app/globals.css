@@ -122,10 +122,13 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .finale-layer { position: fixed; inset: 0; z-index: 4; opacity: 0; visibility: hidden; pointer-events: none; }
 .finale { position: absolute; inset: 0; overflow: hidden; }
 .finale-canvas, .finale-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
-.finale-fallback { background: linear-gradient(#081404, #183410 50%, #e6dcb4 61.5%, #0b1a05 62%); }
-.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 0; width: min(86vw, 440px); opacity: 0;
-  -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent);
-  filter: drop-shadow(0 0 2px rgba(255, 220, 160, 0.9)) drop-shadow(0 0 22px rgba(255, 200, 120, 0.45)); }
+.finale-fallback { background: radial-gradient(40% 25% at 50% 40%, rgba(255, 190, 90, 0.35), transparent 70%), radial-gradient(25% 18% at 20% 20%, rgba(255, 90, 216, 0.3), transparent 70%), radial-gradient(25% 18% at 80% 25%, rgba(95, 242, 238, 0.28), transparent 70%), linear-gradient(#06051a, #2a1440 80%, #0a0612 88%); }
+/* firework light on the couple, cycling through the burst colours */
+@property --fw { syntax: "<color>"; inherits: false; initial-value: #ff5ad8; }
+@keyframes fwlight { 0%, 100% { --fw: #ff5ad8; } 33% { --fw: #5ff2ee; } 66% { --fw: #ffc45a; } }
+.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 8svh; height: min(38svh, 340px); width: auto; opacity: 0;
+  filter: drop-shadow(0 0 1.5px var(--fw)) drop-shadow(0 0 20px color-mix(in srgb, var(--fw) 45%, transparent)) brightness(0.92);
+  animation: fwlight 6s ease-in-out infinite; }
 .finale-caption { position: absolute; top: 14svh; left: 0; right: 0; padding: 0 1.5rem; text-align: center; font-size: clamp(2.2rem, 10vw, 4.5rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
 
 

@@ -7,10 +7,10 @@ import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import KineticLine from "./KineticLine";
 
-// The two of them in an embrace against the fireworks (from the character sheet).
+// The two of them holding hands on the ridge, lit by the fireworks.
 function Couple() {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className="duo" src="/characters/embrace.png" alt="" draggable={false} />;
+  return <img className="duo" src="/characters/together.png" alt="" draggable={false} />;
 }
 
 // Festival-night scene. Fade-in is driven by scroll (scene.finale); fireworks run on time.
