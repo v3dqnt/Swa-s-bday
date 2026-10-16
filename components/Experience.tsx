@@ -2,18 +2,14 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Gate from "./Gate";
-import { story } from "@/content/story";
+import RecordPlayer from "./RecordPlayer";
 
 const Story = dynamic(() => import("./Story"), { ssr: false });
 
 export default function Experience() {
-  const [opened, setOpened] = useState(false);
+  const [stage, setStage] = useState<"gate" | "player" | "story">("gate");
 
-  const open = () => {
-    // The click is the user gesture that lets audio start. Missing file is fine.
-    new Audio(story.song).play().catch(() => {});
-    setOpened(true);
-  };
-
-  return opened ? <Story /> : <Gate onOpen={open} />;
+  if (stage === "gate") return <Gate onOpen={() => setStage("player")} />;
+  if (stage === "player") return <RecordPlayer onBegin={() => setStage("story")} />;
+  return <Story />;
 }

@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Finale from "./Finale";
 import KineticLine from "./KineticLine";
-import { story, type Beat, type Row } from "@/content/story";
+import { story, type Beat, type Cue, type Row } from "@/content/story";
 import { scene } from "@/lib/scene";
+import { soundtrack } from "@/lib/soundtrack";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -129,6 +130,7 @@ function BeatSection({ b, hint }: { b: Beat; hint?: boolean }) {
       data-layout={layout}
       data-kind={b.style ?? "line"}
       data-tone={b.tone}
+      data-cue={b.cue}
       style={{ height: `${h * 100}svh` }}
     >
       <div className="sticky">
@@ -139,9 +141,9 @@ function BeatSection({ b, hint }: { b: Beat; hint?: boolean }) {
   );
 }
 
-function RowSection({ beats, tone }: { beats: Beat[]; tone?: string }) {
+function RowSection({ beats, tone, cue }: { beats: Beat[]; tone?: string; cue?: Cue }) {
   return (
-    <section className="row-sec" data-tone={tone} style={{ height: `${rowHeight(beats.length) * 100}svh` }}>
+    <section className="row-sec" data-tone={tone} data-cue={cue} style={{ height: `${rowHeight(beats.length) * 100}svh` }}>
       <div className="sticky">
         <div className="track" style={{ width: `${beats.length * 100}%` }}>
           {beats.map((b, i) => (
@@ -163,6 +165,7 @@ export default function Story() {
   const root = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
+  const [muted, setMuted] = useState(soundtrack.muted);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -186,6 +189,15 @@ export default function Story() {
           onToggle: (s) => s.isActive && setTone(sec.dataset.tone!),
         })
       );
+
+      // Soundtrack: every cue she has scrolled past (mid-screen) is "passed";
+      // the record plays the latest one it has a track for. Scrolling back reverts.
+      let cues: { cue: Cue; st: ScrollTrigger }[] = [];
+      const followCues = () => soundtrack.follow(cues.filter((c) => c.st.isActive).map((c) => c.cue));
+      cues = gsap.utils.toArray<HTMLElement>("[data-cue]").map((el) => ({
+        cue: el.dataset.cue as Cue,
+        st: ScrollTrigger.create({ trigger: el, start: "top 50%", end: "max", onToggle: followCues }),
+      }));
 
       gsap.utils.toArray<HTMLElement>(".chapter, .finale-sec").forEach((ch) =>
         ScrollTrigger.create({
@@ -231,14 +243,26 @@ export default function Story() {
     <div ref={root} className="story">
       <div className="hud">
         <span ref={label}>{chapters[0].label}</span>
-        <span>for swara.</span>
+        {soundtrack.active ? (
+          <button
+            className="sound"
+            onClick={() => {
+              soundtrack.setMuted(!muted);
+              setMuted(!muted);
+            }}
+          >
+            {muted ? "sound off." : "sound on."}
+          </button>
+        ) : (
+          <span>for swara.</span>
+        )}
       </div>
       <div className="progress" />
       {chapters.map((ch, c) => (
         <div key={c} className="chapter" data-label={ch.label}>
           {ch.rows.map((r, i) =>
             "row" in r ? (
-              <RowSection key={i} beats={r.row} tone={r.tone} />
+              <RowSection key={i} beats={r.row} tone={r.tone} cue={r.cue} />
             ) : (
               <BeatSection key={i} b={r} hint={c === 0 && i === 0} />
             )
