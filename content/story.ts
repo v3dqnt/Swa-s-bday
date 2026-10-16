@@ -7,7 +7,7 @@ export const story = {
   opening: [
     { text: "Hello, Swara.", style: "title" },
     { text: "It has been a long time since we spoke properly, hasn't it?" },
-    { text: "To me, every day without felt like a week. And the weeks felt so long.", style: "soft" },
+    { text: "To me, every day without you felt like a week. And the weeks felt so long.", style: "soft" },
     { text: "But all that aside…" },
     { text: "Today is your special day." },
     { text: "The day you graced this big, big world with your presence." },
