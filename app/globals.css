@@ -7,3 +7,5 @@ html, body { background: var(--bg); color: var(--fg); font-family: Georgia, seri
 button { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--accent); border-radius: 999px; padding: 0.75rem 2rem; cursor: pointer; }
 button:hover { background: var(--accent); color: var(--bg); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.orb-fallback { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, #ff8c99 0, #3a1030 12%, #0d0614 45%); animation: pulse 3s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.8; } }
