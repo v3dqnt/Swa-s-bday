@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import Lenis from "lenis";
 import Backdrop from "./Backdrop";
+import Crate from "./Crate";
 import Deck from "./Deck";
 import Finale from "./Finale";
 import KineticLine from "./KineticLine";
@@ -30,6 +31,8 @@ const BASE = "#112409";
 const LABELS = ["01 — hello.", "02 — thank you.", "03 — imagine."];
 const FINALE_LABEL = "04 — happy birthday.";
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+// The CD crate sits in front of and below the turntable, a little closer to the camera.
+const CRATE_POSE: Pose = { x: 0, y: 238, z: 60, rx: 0, ry: 0, rz: 0 };
 const rgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
 
 // The whole experience as one 2.5D world. It opens on the silver turntable, where
@@ -60,6 +63,7 @@ export default function World() {
         .timeline({ delay: 0.15 })
         .from(".picker-title .piece", { yPercent: 115, duration: 1, ease: "expo.out", stagger: 0.06 })
         .from(".deck-in", { y: 90, opacity: 0, duration: 1.2, ease: "expo.out" }, "-=0.7")
+        .from(".crate3d", { y: 160, duration: 1.1, ease: "expo.out", clearProps: "transform" }, "-=1.0")
         .from(".picker-bottom > *", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, clearProps: "opacity,transform" }, "-=0.8");
     }, root);
     return () => ctx.revert();
@@ -266,13 +270,38 @@ export default function World() {
     };
   }, [started, reduced, shots]);
 
-  const choose = (r: Experience | null) => {
-    setRecord(r);
+  const [picking, setPicking] = useState<string | null | undefined>(undefined);
+
+  const choose = (r: Experience | null, from?: HTMLElement) => {
+    setPicking(r ? r.id : null);
     soundtrack.select(r); // this tap is the gesture that unlocks audio
+    if (!r || !from || reduced) return setRecord(r);
+
+    // The case hops out of the crate and spins; its disc slides out and flies in an
+    // arc onto the platter, and only then lands as the record on the turntable.
+    const body = from.querySelector(".cd-body");
+    gsap.timeline()
+      .to(body, { y: -110, duration: 0.35, ease: "power2.out" })
+      .to(body, { rotationY: 360, duration: 0.7, ease: "power2.inOut" }, "<")
+      .to(body, { y: 0, duration: 0.5, ease: "bounce.out", clearProps: "transform" });
+
+    const a = from.querySelector(".cd-art")!.getBoundingClientRect();
+    const b = root.current!.querySelector(".platter")!.getBoundingClientRect();
+    const disc = root.current!.querySelector<HTMLElement>(".flying-disc")!;
+    disc.style.setProperty("--label", r.label);
+    const size = b.width * 0.92;
+    gsap.timeline({ delay: 0.3, onComplete: () => setRecord(r) })
+      .set(disc, { autoAlpha: 1, width: size, height: size, left: a.left + a.width / 2 - size / 2, top: a.top + a.height / 2 - size / 2, scale: a.width / size, rotate: 0 })
+      .to(disc, { left: b.left + b.width / 2 - size / 2, duration: 0.75, ease: "power2.inOut" })
+      .to(disc, { top: b.top + b.height / 2 - size / 2, duration: 0.75, ease: "back.in(1.4)" }, "<")
+      .to(disc, { scale: 1, rotate: 540, duration: 0.75, ease: "power1.inOut" }, "<")
+      .set(disc, { autoAlpha: 0 });
   };
 
-  const begin = () =>
+  const begin = () => {
+    gsap.to(".crate3d", { y: 420, rotationX: 25, duration: 0.8, ease: "power3.in" });
     gsap.to(".picker", { opacity: 0, y: 24, duration: 0.7, ease: "power2.in", onComplete: () => setStarted(true) });
+  };
 
   return (
     <div ref={root} className="world-root">
@@ -283,6 +312,9 @@ export default function World() {
             <div className="deck-in">
               <Deck record={record} />
             </div>
+          </div>
+          <div className="item crate-item" style={{ transform: itemTransform(CRATE_POSE), visibility: started ? "hidden" : "visible" }}>
+            <Crate records={experiences} picked={picking} onPick={(r, el) => choose(r, el)} />
           </div>
           {shots.map((sh, i) => (
             <div
@@ -327,6 +359,8 @@ export default function World() {
       <div className="film" aria-hidden="true" />
       <div className="vignette" aria-hidden="true" />
 
+      <div className="flying-disc" aria-hidden="true" />
+
       <div className="finale-layer">
         <Finale />
       </div>
@@ -334,32 +368,18 @@ export default function World() {
       {!started ? (
         <div className="picker">
           <div className="picker-top">
-            <KineticLine className="picker-title" text="pick a record." />
-            <p className="picker-sub">each one is a soundtrack that changes as you read.</p>
+            <KineticLine className="picker-title" text="pick a cd." />
+            <p className="picker-sub">choose one from the box. each is a soundtrack that changes as you read.</p>
           </div>
           <div className="picker-bottom">
-            <div className="crate" role="radiogroup" aria-label="records">
-              {experiences.map((r) => (
-                <button
-                  key={r.id}
-                  role="radio"
-                  aria-checked={record?.id === r.id}
-                  className={`sleeve ${record?.id === r.id ? "picked" : ""}`}
-                  style={{ ["--sleeve" as string]: r.sleeve, ["--label" as string]: r.label, color: r.ink }}
-                  onClick={() => choose(r)}
-                >
-                  <span className="sleeve-disc" />
-                  <span className="sleeve-title">{r.title}</span>
-                  <span className="sleeve-note">{r.note}</span>
-                </button>
-              ))}
-            </div>
-            <button className={`silence ${record === null ? "picked" : ""}`} onClick={() => choose(null)}>
+            <div className="picker-row">
+            <button className={`silence ${picking === null ? "picked" : ""}`} onClick={() => choose(null)}>
               no music, just words.
             </button>
             <button className="begin" disabled={record === undefined} onClick={begin}>
               begin.
             </button>
+            </div>
           </div>
         </div>
       ) : (
