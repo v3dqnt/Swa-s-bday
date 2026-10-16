@@ -9,7 +9,7 @@ const Orb = dynamic(() => import("./Orb"), { ssr: false });
 
 // Chapters after the opening get added here as the story comes together.
 export default function Experience() {
-  const [stage, setStage] = useState<"gate" | "opening" | "next">("gate");
+  const [stage, setStage] = useState<"gate" | "opening" | "gratitude" | "next">("gate");
 
   const open = () => {
     // The click is the user gesture that lets audio start. Missing file is fine.
@@ -22,9 +22,11 @@ export default function Experience() {
     <main className="gate">
       <Orb />
       {stage === "opening" ? (
-        <Cinematic beats={story.opening} onDone={() => setStage("next")} />
+        <Cinematic beats={story.opening} onDone={() => setStage("gratitude")} />
+      ) : stage === "gratitude" ? (
+        <Cinematic beats={story.gratitude} onDone={() => setStage("next")} />
       ) : (
-        <p className="beat" style={{ opacity: 1, position: "relative" }}>Chapter 2 coming soon</p>
+        <p className="beat" style={{ opacity: 1, position: "relative" }}>More coming soon</p>
       )}
     </main>
   );
