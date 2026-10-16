@@ -5,6 +5,18 @@
   --line: rgba(242, 238, 214, 0.18);
   --leaf: #8fcf72;   /* lighter green for garnish: hearts, stars, highlights */
   --mint: #c9eba8;
+  --tone: #112409;   /* current scene shade; animated from JS */
+  /* extrusion steps lit by the scene: cream face → light green → the scene's own shade */
+  --x1: color-mix(in srgb, #f2eed6 72%, var(--tone));
+  --x2: color-mix(in srgb, #c9eba8 68%, var(--tone));
+  --x3: color-mix(in srgb, #8fcf72 72%, var(--tone));
+  --x4: color-mix(in srgb, #8fcf72 54%, var(--tone));
+  --x5: color-mix(in srgb, #8fcf72 40%, var(--tone));
+  --x6: color-mix(in srgb, #8fcf72 28%, var(--tone));
+  --x7: color-mix(in srgb, #8fcf72 18%, var(--tone));
+  --x8: color-mix(in srgb, #000 18%, var(--tone));
+  --x9: color-mix(in srgb, #000 34%, var(--tone));
+  --xs: color-mix(in srgb, #000 62%, var(--tone));
 }
 * { box-sizing: border-box; margin: 0; }
 html, body { background: var(--bg); color: var(--cream); }
@@ -48,14 +60,23 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 /* ── Extruded 3D type: stepped depth in greens, then a soft drop shadow ── */
 .item .beat .piece, .picker-title .piece, .gate-title .piece {
   text-shadow:
-    0 0.012em 0 #dcd8bf, 0 0.024em 0 #bccba4, 0 0.036em 0 #a3bf8b, 0 0.048em 0 #8cb075,
-    0 0.06em 0 #76a061, 0 0.072em 0 #618e4f, 0 0.084em 0 #4e7b40, 0 0.096em 0 #3d6832,
-    0 0.11em 0 #2c5425, 0 0.2em 0.22em rgba(0, 0, 0, 0.5);
+    0 0 0.6em color-mix(in srgb, #8fcf72 22%, transparent),
+    0 0.012em 0 var(--x1), 0 0.024em 0 var(--x2), 0 0.036em 0 var(--x3), 0 0.048em 0 var(--x4),
+    0 0.06em 0 var(--x5), 0 0.072em 0 var(--x6), 0 0.084em 0 var(--x7), 0 0.096em 0 var(--x8),
+    0 0.11em 0 var(--x9), 0 0.22em 0.26em var(--xs);
 }
-.item .beat.soft .piece { text-shadow: 0 0.02em 0 #a9b896, 0 0.04em 0 #7f9a6b, 0 0.06em 0 #5b7a4b, 0 0.14em 0.16em rgba(0, 0, 0, 0.45); }
+.item .beat.soft .piece { text-shadow: 0 0 0.5em color-mix(in srgb, #8fcf72 18%, transparent), 0 0.02em 0 var(--x3), 0 0.04em 0 var(--x5), 0 0.06em 0 var(--x8), 0 0.14em 0.16em var(--xs); }
 .item .beat .hl .piece { text-shadow: none; }
-.hl-bg { box-shadow: 0 0.05em 0 #6fae55, 0 0.09em 0 #4e7b40, 0 0.18em 0.2em rgba(0, 0, 0, 0.4); }
-.underline { box-shadow: 0 3px 0 #4e7b40, 0 8px 12px rgba(0, 0, 0, 0.4); }
+.hl-bg { box-shadow: 0 0.05em 0 var(--x4), 0 0.09em 0 var(--x7), 0 0.18em 0.2em var(--xs), 0 0 0.6em color-mix(in srgb, #8fcf72 30%, transparent); }
+.underline { box-shadow: 0 3px 0 var(--x6), 0 8px 12px var(--xs), 0 0 14px color-mix(in srgb, #8fcf72 35%, transparent); }
+
+/* Shared film layer: grain and vignette over everything, so text and scene read as one image. */
+.film { position: fixed; inset: -50%; z-index: 7; pointer-events: none; opacity: 0.16; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.9s steps(6) infinite; }
+@keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -5%); } 60% { transform: translate(-6%, -2%); } 80% { transform: translate(5%, 4%); } 100% { transform: translate(-2%, 6%); } }
+.vignette { position: fixed; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 55%, color-mix(in srgb, #000 45%, transparent) 100%); }
+@media (prefers-reduced-motion: reduce) { .film { animation: none; } }
 
 /* ── Motion graphics ───────────────────────────────────────── */
 .item .mask { overflow: visible; }

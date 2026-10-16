@@ -7,7 +7,7 @@ import { scene } from "@/lib/scene";
 import type { Scene } from "@/content/story";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
-const WORLDS: Scene[] = ["abstract", "city", "jungle", "meadow"];
+const WORLDS: Scene[] = ["abstract", "city", "jungle", "meadow", "ribbons", "topo", "bokeh", "petals"];
 const ACCENT = [0.56, 0.81, 0.45, 1]; // --leaf
 
 // Fixed full-screen WebGPU background behind the 3D world. It eases its tone and
@@ -30,9 +30,21 @@ export default function Backdrop() {
         const tone = [...scene.tone];
         const weights = WORLDS.map((w) => (w === scene.world ? 1 : 0));
         const cam = [0, 0];
+        let focus = 0;
+        let speed = 0;
         const bg = effect(gpu, backdropShader, {
           set: {
-            params: { time: 0, grain: 0.07, texel: target.texelSize, base: [...tone, 1], accent: ACCENT, weights, cam: [0, 0, 0, 0] },
+            params: {
+              time: 0,
+              grain: 0.07,
+              texel: target.texelSize,
+              base: [...tone, 1],
+              accent: ACCENT,
+              weights: weights.slice(0, 4),
+              weights2: weights.slice(4),
+              cam: [0, 0, 0, 0],
+              fx: [0, 0, 10, 0],
+            },
           },
         });
         target.onResize(() => bg.set({ params: { texel: target.texelSize } }));
@@ -44,8 +56,18 @@ export default function Backdrop() {
           WORLDS.forEach((w, i) => (weights[i] += ((w === scene.world ? 1 : 0) - weights[i]) * k * 0.7));
           cam[0] += (scene.camYaw - cam[0]) * Math.min(1, time.deltaTime * 4);
           cam[1] += (scene.camPitch - cam[1]) * Math.min(1, time.deltaTime * 4);
+          focus += (scene.focus - focus) * Math.min(1, time.deltaTime * 3);
+          speed += (scene.speed - speed) * Math.min(1, time.deltaTime * 5);
+          const age = reduced ? 10 : performance.now() / 1000 - scene.landedAt;
           bg.set({
-            params: { time: reduced ? 0 : time.time, base: [...tone, 1], weights, cam: [cam[0], cam[1], 0, 0] },
+            params: {
+              time: reduced ? 0 : time.time,
+              base: [...tone, 1],
+              weights: weights.slice(0, 4),
+              weights2: weights.slice(4),
+              cam: [cam[0], cam[1], 0, 0],
+              fx: [focus, reduced ? 0 : speed, age, 0],
+            },
           });
           frame.pass(target, bg);
         });

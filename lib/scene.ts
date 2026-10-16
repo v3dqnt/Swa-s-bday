@@ -10,4 +10,7 @@ export const scene = {
   world: "abstract" as Scene,
   camYaw: 0,
   camPitch: 0,
+  focus: 0, // a line is on screen, 0..1
+  speed: 0, // camera flight speed, 0..1
+  landedAt: -10, // performance.now()/1000 when the latest line landed
 };

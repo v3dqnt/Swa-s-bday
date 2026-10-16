@@ -1,6 +1,8 @@
 // Living background: a grainy, slowly drifting mesh gradient built from the current
-// tone, with four crossfading worlds on top: abstract rings, a night city skyline,
-// a jungle of leaves, and a meadow with fireflies. Layers parallax with the camera.
+// tone, with eight crossfading worlds on top (abstract rings, city, jungle, meadow,
+// silk ribbons, topographic contours, bokeh, falling petals). Layers parallax with
+// the camera; the current line lights the scene behind it, sends a ripple through
+// it when it lands, and fast camera flights pull light streaks past.
 // uv is top-origin, so y grows downward.
 struct Params {
   time: f32,
@@ -9,7 +11,9 @@ struct Params {
   base: vec4f, // current tone (rgb)
   accent: vec4f, // light green garnish colour (rgb)
   weights: vec4f, // abstract, city, jungle, meadow
+  weights2: vec4f, // ribbons, topo, bokeh, petals
   cam: vec4f, // yaw deg, pitch deg, -, -
+  fx: vec4f, // focus 0..1, speed 0..1, seconds since a line landed, -
 }
 @group(0) @binding(0) var<uniform> params: Params;
 
@@ -179,6 +183,86 @@ fn fireflies(uv: vec2f, asp: f32, t: f32, accent: vec3f) -> vec3f {
   return acc;
 }
 
+// Three flowing silk bands with a lit edge.
+fn ribbons_layer(uv: vec2f, asp: f32, t: f32, base: vec3f, accent: vec3f, yaw: f32) -> vec4f {
+  var col = vec3f(0.0);
+  var alpha = 0.0;
+  let x = uv.x * asp;
+  for (var i = 0; i < 3; i++) {
+    let fi = f32(i);
+    let px = x * (3.0 + fi) + yaw * 0.01 * (fi + 1.0);
+    let c = 0.25 + fi * 0.25 + 0.09 * sin(px + t * (0.3 + fi * 0.07) + fi * 2.0) + 0.04 * sin(px * 2.3 - t * 0.2);
+    let w = 0.035 + 0.025 * sin(px * 0.7 + t * 0.25 + fi);
+    let d = (uv.y - c) / w;
+    if (abs(d) < 1.0) {
+      let fold = 0.5 + 0.5 * sin(px * 1.7 + t * 0.4 + fi * 3.0); // silk sheen across the band
+      let shade = mix(base * 1.2, mix(accent, vec3f(0.95, 0.93, 0.84), 0.3), 0.25 + 0.45 * fold * (1.0 - d * d));
+      col = shade + vec3f(0.9, 0.95, 0.8) * smoothstep(0.75, 1.0, -d) * 0.18;
+      alpha = 0.85 * smoothstep(1.0, 0.85, abs(d));
+    }
+  }
+  return vec4f(col, alpha);
+}
+
+// Topographic contour lines of a slowly shifting terrain.
+fn topo_layer(uv: vec2f, asp: f32, t: f32, accent: vec3f, yaw: f32) -> vec4f {
+  let p = vec2f(uv.x * asp + yaw * 0.003, uv.y) * 2.2 + vec2f(t * 0.02, -t * 0.015);
+  let h = fbm(p) * 20.0;
+  let f = fract(h);
+  let aa = fwidth(h) * 1.2;
+  let line = smoothstep(aa, 0.0, min(f, 1.0 - f));
+  let major = step(0.5, fract(floor(h) * 0.25)); // every fourth line brighter
+  return vec4f(mix(accent, vec3f(0.95, 0.93, 0.84), major * 0.4), line * (0.22 + major * 0.18));
+}
+
+// Soft out-of-focus light orbs rising slowly.
+fn bokeh_layer(uv: vec2f, asp: f32, t: f32, accent: vec3f, yaw: f32) -> vec4f {
+  let p = vec2f(uv.x * asp, uv.y);
+  var a = 0.0;
+  var tint = vec3f(0.0);
+  for (var i = 0; i < 16; i++) {
+    let fi = f32(i);
+    let depth = hash11(fi + 2.0);
+    let r = 0.03 + depth * 0.09;
+    let c = vec2f(
+      fract(hash11(fi) + yaw * 0.0015 * (depth + 0.3)) * (asp + 0.2) - 0.1,
+      1.15 - fract(hash11(fi + 5.0) + t * (0.01 + 0.02 * depth)) * 1.3
+    );
+    let d = length(p - c);
+    let disc = smoothstep(r, r * 0.8, d) * (0.08 + 0.1 * (1.0 - depth)) + smoothstep(r * 1.02, r * 0.95, d) * smoothstep(r * 0.85, r, d) * 0.12;
+    a += disc;
+    tint += mix(accent, vec3f(0.96, 0.94, 0.82), hash11(fi + 9.0)) * disc;
+  }
+  return vec4f(tint / max(a, 0.001), clamp(a, 0.0, 0.8));
+}
+
+// Petals tumbling down through depth.
+fn petals_layer(uv: vec2f, asp: f32, t: f32, accent: vec3f, yaw: f32) -> vec4f {
+  let p = vec2f(uv.x * asp, uv.y);
+  var col = vec3f(0.0);
+  var alpha = 0.0;
+  for (var i = 0; i < 26; i++) {
+    let fi = f32(i);
+    let depth = hash11(fi + 4.0);
+    let size = 0.012 + depth * 0.022;
+    let fall = fract(hash11(fi + 1.0) + t * (0.02 + 0.03 * depth));
+    let c = vec2f(
+      fract(hash11(fi) + 0.06 * sin(t * 0.7 + fi) + yaw * 0.002 * (depth + 0.3)) * asp,
+      fall * 1.2 - 0.1
+    );
+    let ang = t * (0.8 + hash11(fi + 6.0)) + fi;
+    let flip = 0.35 + 0.65 * abs(sin(t * 1.3 + fi)); // turning in 3D
+    let q = p - c;
+    let r = vec2f(cos(ang) * q.x + sin(ang) * q.y, -sin(ang) * q.x + cos(ang) * q.y);
+    let d = length(vec2f(r.x / (size * flip), r.y / (size * 0.55)));
+    if (d < 1.0) {
+      col = mix(accent, vec3f(0.97, 0.94, 0.86), 0.35 + 0.4 * hash11(fi + 8.0)) * (0.75 + 0.25 * depth);
+      alpha = smoothstep(1.0, 0.8, d) * (0.45 + 0.4 * depth);
+    }
+  }
+  return vec4f(col, alpha);
+}
+
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let asp = params.texel.y / params.texel.x;
   let t = params.time;
@@ -204,6 +288,45 @@ fn fireflies(uv: vec2f, asp: f32, t: f32, accent: vec3f) -> vec3f {
     let s = meadow_layer(uv, asp, base, yaw);
     col = mix(col, s.rgb, s.a * w.w);
     col += fireflies(uv, asp, t, accent) * w.w;
+  }
+
+  let w2 = params.weights2;
+  if (w2.x > 0.01) {
+    let s = ribbons_layer(uv, asp, t, base, accent, yaw);
+    col = mix(col, s.rgb, s.a * w2.x);
+  }
+  if (w2.y > 0.01) {
+    let s = topo_layer(uv, asp, t, accent, yaw);
+    col = mix(col, s.rgb, s.a * w2.y);
+  }
+  if (w2.z > 0.01) {
+    let s = bokeh_layer(uv, asp, t, accent, yaw);
+    col = mix(col, s.rgb, s.a * w2.z);
+  }
+  if (w2.w > 0.01) {
+    let s = petals_layer(uv, asp, t, accent, yaw);
+    col = mix(col, s.rgb, s.a * w2.w);
+  }
+
+  // The line on screen lights the scene behind it (it sits at the centre).
+  let focus = params.fx.x;
+  let speed = params.fx.y;
+  let age = params.fx.z;
+  let cpos = vec2f((uv.x - 0.5) * asp, uv.y - 0.47);
+  let r = length(cpos);
+  col += mix(base * 3.0, vec3f(0.94, 0.92, 0.8), 0.25) * exp(-r * r * 7.0) * 0.22 * focus;
+  // ...and sends a ripple out through it when it lands.
+  if (age < 2.5) {
+    let ring = abs(r - age * 0.55);
+    col += accent * smoothstep(0.03, 0.0, ring) * (1.0 - age / 2.5) * 0.35;
+  }
+  // Fast camera flights pull light streaks past, like warp speed.
+  if (speed > 0.02) {
+    let ang = atan2(cpos.y, cpos.x);
+    let lane = floor(ang * 38.0);
+    let flow = fract(r * 1.6 - t * 1.8 * (0.6 + hash11(lane)));
+    let streak = step(0.82, hash11(lane + 3.0)) * smoothstep(0.0, 0.25, flow) * smoothstep(0.55, 0.25, flow) * smoothstep(0.12, 0.45, r);
+    col += mix(accent, vec3f(0.95, 0.93, 0.84), 0.5) * streak * speed * 0.45;
   }
 
   let v = uv - 0.5;

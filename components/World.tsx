@@ -144,6 +144,7 @@ export default function World() {
   useEffect(() => {
     let current = -2;
     const onStage = shots.map(() => false);
+    let last: Pose | null = null;
     const finaleEl = root.current!.querySelector<HTMLElement>(".finale-layer")!;
 
     // Opacity flattens 3D in Chrome, so items that must stay 3D (the deck, the
@@ -180,6 +181,16 @@ export default function World() {
       w.style.transform = t;
       scene.camYaw = pose.ry;
       scene.camPitch = pose.rx;
+      // How fast the camera is actually moving (it stops when she stops scrolling),
+      // and whether a line is being read; the background reacts to both.
+      if (last) {
+        const v =
+          Math.abs(pose.x - last.x) + Math.abs(pose.y - last.y) + Math.abs(pose.z - last.z) +
+          8 * (Math.abs(pose.rx - last.rx) + Math.abs(pose.ry - last.ry) + Math.abs(pose.rz - last.rz));
+        scene.speed = clamp01(v / 70);
+      }
+      last = pose;
+      scene.focus = started && seg.shot >= 0 && seg.shot < shots.length ? (seg.travel ? Math.pow(u, 3) : 1) : 0;
       w.style.opacity = reduced && seg.travel && started ? Math.abs(1 - 2 * u).toFixed(3) : "1";
 
       const m = new DOMMatrix(t);
@@ -198,7 +209,10 @@ export default function World() {
         const anim = arrivals.current[i];
         if (!anim) return;
         if (reduced) anim.progress(on ? 1 : 0);
-        else if (on) anim.timeScale(1).play();
+        else if (on) {
+          anim.timeScale(1).play();
+          scene.landedAt = performance.now() / 1000; // ripple through the background
+        }
         else anim.timeScale(2.2).reverse();
       });
 
@@ -221,6 +235,7 @@ export default function World() {
         const tone = inFinale || reached < 0 ? BASE : shots[reached].tone ?? BASE;
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         scene.tone = rgb(tone);
+        gsap.to(document.documentElement, { "--tone": tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         scene.world = inFinale ? "city" : reached < 0 ? "abstract" : shots[reached].scene;
         if (label.current) label.current.textContent = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
         const passed = shots.slice(0, reached + 1).flatMap((sh) => (sh.cue ? [sh.cue] : [])) as Cue[];
@@ -299,6 +314,10 @@ export default function World() {
         </svg>
         <div className="wipe-diag" />
       </div>
+
+      {/* one grain + vignette pass over text, garnish and background alike */}
+      <div className="film" aria-hidden="true" />
+      <div className="vignette" aria-hidden="true" />
 
       <div className="finale-layer">
         <Finale />
