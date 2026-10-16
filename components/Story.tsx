@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Finale from "./Finale";
+import KineticLine from "./KineticLine";
 import { story } from "@/content/story";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
@@ -15,12 +16,17 @@ type Beat = { text: string; style?: "title" | "soft" };
 // Section height in viewport units. Taller sections hold their line on screen longer.
 const heightOf = (b: Beat) => (b.style === "title" ? 2.2 : 1.7);
 
-const chapters: Beat[][] = [story.opening, story.gratitude, story.imagine];
+const chapters: { label: string; beats: Beat[] }[] = [
+  { label: "01 — hello.", beats: story.opening },
+  { label: "02 — thank you.", beats: story.gratitude },
+  { label: "03 — imagine.", beats: story.imagine },
+];
 
-// The whole story as one long scroll. Each line pins in the middle of the screen
-// while its section passes, fading in from a blur and out again, all scrubbed by scroll.
+// The whole story as one long scroll. Each line pins mid-screen while its section
+// passes; its words (or letters, for titles) slide out of masks, scrubbed by scroll.
 export default function Story() {
   const root = useRef<HTMLDivElement>(null);
+  const label = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => {
@@ -32,28 +38,57 @@ export default function Story() {
     gsap.ticker.lagSmoothing(0);
 
     const ctx = gsap.context(() => {
-      const hidden = reduced ? { opacity: 0 } : { opacity: 0, y: 36, filter: "blur(12px)" };
-      const shown = reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" };
-      const gone = reduced ? { opacity: 0 } : { opacity: 0, y: -28, filter: "blur(8px)" };
-
       gsap.utils.toArray<HTMLElement>(".beat-sec").forEach((sec) => {
         // A sticky line is pinned between these two points of its section's travel.
         const h = Number(sec.dataset.h);
         const pinStart = 1 / (h + 1);
         const pinEnd = h / (h + 1);
-        const line = sec.querySelector(".beat");
-        gsap
-          .timeline({ scrollTrigger: { trigger: sec, start: "top bottom", end: "bottom top", scrub: true } })
-          .fromTo(line, hidden, { ...shown, duration: 0.16, ease: "power2.out" }, pinStart - 0.12)
-          .to(line, { ...gone, duration: 0.16, ease: "power1.in" }, pinEnd - 0.04)
-          .set({}, {}, 1);
+        const pieces = sec.querySelectorAll(".piece");
+        const kind = sec.dataset.kind;
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: sec, start: "top bottom", end: "bottom top", scrub: reduced ? true : 0.6 },
+        });
+
+        if (reduced) {
+          tl.fromTo(pieces, { opacity: 0 }, { opacity: 1, duration: 0.1 }, pinStart - 0.1)
+            .to(pieces, { opacity: 0, duration: 0.1 }, pinEnd);
+        } else if (kind === "title") {
+          tl.fromTo(
+            pieces,
+            { yPercent: 120, rotate: 8 },
+            { yPercent: 0, rotate: 0, duration: 0.14, ease: "expo.out", stagger: { amount: 0.08 } },
+            pinStart - 0.14
+          )
+            .fromTo(sec.querySelector(".beat"), { scale: 0.92 }, { scale: 1.04, duration: pinEnd - pinStart + 0.1, ease: "none" }, pinStart - 0.05)
+            .to(pieces, { yPercent: -120, rotate: -6, duration: 0.12, ease: "expo.in", stagger: { amount: 0.06 } }, pinEnd - 0.02);
+        } else if (kind === "soft") {
+          tl.fromTo(
+            pieces,
+            { opacity: 0, x: 24 },
+            { opacity: 1, x: 0, duration: 0.14, ease: "power2.out", stagger: { amount: 0.1 } },
+            pinStart - 0.14
+          ).to(pieces, { opacity: 0, x: -24, duration: 0.12, ease: "power2.in", stagger: { amount: 0.06 } }, pinEnd - 0.02);
+        } else {
+          tl.fromTo(
+            pieces,
+            { yPercent: 110 },
+            { yPercent: 0, duration: 0.14, ease: "power3.out", stagger: { amount: 0.1 } },
+            pinStart - 0.14
+          ).to(pieces, { yPercent: -110, duration: 0.12, ease: "power3.in", stagger: { amount: 0.06 } }, pinEnd - 0.02);
+        }
+        tl.set({}, {}, 1);
       });
 
-      ScrollTrigger.create({
-        start: 0,
-        end: "max",
-        onUpdate: (s) => (scene.progress = s.progress),
-      });
+      gsap.utils.toArray<HTMLElement>(".chapter, .finale-sec").forEach((ch) =>
+        ScrollTrigger.create({
+          trigger: ch,
+          start: "top 50%",
+          end: "bottom 50%",
+          onToggle: (s) => s.isActive && label.current && (label.current.textContent = ch.dataset.label ?? ""),
+        })
+      );
+
+      gsap.fromTo(".progress", { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: true } });
 
       const fin = ".finale-sec";
       ScrollTrigger.create({
@@ -69,9 +104,9 @@ export default function Story() {
         onUpdate: (s) => (scene.finale = s.progress),
       });
       gsap
-        .timeline({ scrollTrigger: { trigger: fin, start: "top top", end: "bottom bottom", scrub: true } })
+        .timeline({ scrollTrigger: { trigger: fin, start: "top top", end: "bottom bottom", scrub: 0.6 } })
         .fromTo(".duo", { opacity: 0, y: 48 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 0.05)
-        .fromTo(".finale-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25 }, 0.45)
+        .fromTo(".finale-caption .piece", { yPercent: 115 }, { yPercent: 0, duration: 0.25, ease: "expo.out", stagger: { amount: 0.08 } }, 0.45)
         .set({}, {}, 1);
     }, root);
 
@@ -79,20 +114,29 @@ export default function Story() {
       ctx.revert();
       gsap.ticker.remove(tick);
       lenis?.destroy();
-      Object.assign(scene, { progress: 0, finale: 0, finaleActive: false });
+      Object.assign(scene, { finale: 0, finaleActive: false });
     };
   }, [reduced]);
 
   return (
     <div ref={root} className="story">
-      <div className="bar top" />
-      <div className="bar bottom" />
-      {chapters.map((beats, c) => (
-        <div key={c} className="chapter">
-          {beats.map((b, i) => (
-            <section key={i} className="beat-sec" data-h={heightOf(b)} style={{ height: `${heightOf(b) * 100}svh` }}>
+      <div className="hud">
+        <span ref={label}>{chapters[0].label}</span>
+        <span>for swara.</span>
+      </div>
+      <div className="progress" />
+      {chapters.map((ch, c) => (
+        <div key={c} className="chapter" data-label={ch.label}>
+          {ch.beats.map((b, i) => (
+            <section
+              key={i}
+              className="beat-sec"
+              data-h={heightOf(b)}
+              data-kind={b.style ?? "line"}
+              style={{ height: `${heightOf(b) * 100}svh` }}
+            >
               <div className="sticky">
-                <p className={`beat ${b.style ?? ""}`}>{b.text}</p>
+                <KineticLine className={`beat ${b.style ?? ""}`} text={b.text} letters={b.style === "title"} />
                 {c === 0 && i === 0 && <span className="hint">scroll slowly</span>}
               </div>
             </section>
@@ -100,7 +144,7 @@ export default function Story() {
           <div className="breath" />
         </div>
       ))}
-      <section className="finale-sec">
+      <section className="finale-sec" data-label="04 — happy birthday.">
         <div className="sticky">
           <Finale />
         </div>

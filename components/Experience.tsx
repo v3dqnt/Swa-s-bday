@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Gate from "./Gate";
 import { story } from "@/content/story";
 
-const Orb = dynamic(() => import("./Orb"), { ssr: false });
 const Story = dynamic(() => import("./Story"), { ssr: false });
 
 export default function Experience() {
@@ -16,10 +15,5 @@ export default function Experience() {
     setOpened(true);
   };
 
-  return (
-    <>
-      <Orb />
-      {opened ? <Story /> : <Gate onOpen={open} />}
-    </>
-  );
+  return opened ? <Story /> : <Gate onOpen={open} />;
 }

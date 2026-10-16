@@ -4,9 +4,9 @@ struct Params { time: f32, reveal: f32, texel: vec2f }
 @group(0) @binding(0) var<uniform> params: Params;
 
 const HORIZON: f32 = 0.62;
-const BG = vec3f(0.027, 0.078, 0.059);
+const BG = vec3f(0.067, 0.141, 0.035);
 const GOLD = vec3f(1.0, 0.82, 0.48);
-const CHAMPAGNE = vec3f(0.96, 0.9, 0.78);
+const CHAMPAGNE = vec3f(0.95, 0.93, 0.84);
 const EMERALD = vec3f(0.3, 0.85, 0.55);
 const JADE = vec3f(0.6, 0.95, 0.8);
 
@@ -68,7 +68,7 @@ fn lantern_string(q: vec2f, a: vec2f, b: vec2f, sag: f32, n: i32, time: f32) -> 
 
 fn sky(q: vec2f, asp: f32, time: f32) -> vec3f {
   let t = clamp(q.y / HORIZON, 0.0, 1.0);
-  var col = mix(vec3f(0.008, 0.035, 0.025), vec3f(0.04, 0.15, 0.10), pow(t, 1.4));
+  var col = mix(vec3f(0.02, 0.05, 0.01), vec3f(0.07, 0.16, 0.05), pow(t, 1.4));
   col += vec3f(0.92, 0.78, 0.52) * pow(t, 7.0) * 0.6;
   col += vec3f(0.55, 0.45, 0.25) * pow(t, 3.0) * 0.15;
 
@@ -95,13 +95,13 @@ fn sky(q: vec2f, asp: f32, time: f32) -> vec3f {
     let shore = HORIZON - 0.012 - 0.01 * sin(x * 5.0 + 1.0) - 0.006 * sin(x * 13.0);
     if (uv.y > shore) {
       let lit = step(0.93, hash(floor(x * 120.0))) * vec3f(1.0, 0.82, 0.55) * 0.8;
-      col = vec3f(0.01, 0.03, 0.02) + lit;
+      col = vec3f(0.015, 0.03, 0.008) + lit;
     }
   } else {
     let wy = uv.y - HORIZON;
     let mx = x + sin(wy * 110.0 + time * 1.6 + x * 25.0) * 0.006 * (wy + 0.03);
     let my = max(HORIZON - wy * 1.6, 0.0);
-    col = sky(vec2f(mx, my), asp, time) * 0.5 * (1.0 - 0.8 * wy) + vec3f(0.01, 0.04, 0.03);
+    col = sky(vec2f(mx, my), asp, time) * 0.5 * (1.0 - 0.8 * wy) + vec3f(0.02, 0.05, 0.012);
   }
 
   let v = uv - 0.5;
