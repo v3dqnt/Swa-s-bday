@@ -13,6 +13,7 @@ import { experiences, type Experience } from "@/content/music";
 import { soundtrack } from "@/lib/soundtrack";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { measureFrame, type Frame } from "@/lib/frame";
 import {
   FINALE_LEN,
   ORIGIN,
@@ -30,8 +31,10 @@ const BASE = "#112409";
 const LABELS = ["01 — hello.", "02 — thank you.", "03 — imagine."];
 const FINALE_LABEL = "04 — happy birthday.";
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-// The CD crate sits in front of and below the turntable, a little closer to the camera.
-const CRATE_POSE: Pose = { x: 0, y: 238, z: 60, rx: 0, ry: 0, rz: 0 };
+// The CD crate sits below the turntable on phones and beside it on wide screens,
+// a little closer to the camera.
+const cratePose = (portrait: boolean): Pose =>
+  portrait ? { x: 0, y: 238, z: 60, rx: 0, ry: 0, rz: 0 } : { x: 540, y: 50, z: 60, rx: 0, ry: 0, rz: 0 };
 const rgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
 
 // The whole experience as one 2.5D world. It opens on the silver turntable, where
@@ -54,6 +57,8 @@ export default function World() {
   const timeline = useRef<{ segs: Segment[]; total: number; finaleStart: number; windows: [number, number][] } | null>(null);
   const arrivals = useRef<gsap.core.Timeline[]>([]);
   const vh = useRef(1);
+  const [frame, setFrame] = useState<Frame>({ portrait: true, k: 1 });
+  const fit = useRef<Frame>(frame);
 
   // Picker entrance.
   useEffect(() => {
@@ -77,6 +82,8 @@ export default function World() {
   useEffect(() => {
     const build = () => {
       vh.current = innerHeight;
+      fit.current = measureFrame();
+      setFrame(fit.current);
       const widths = items.current.map((el) => el?.offsetWidth ?? 0);
       items.current.forEach((el, i) => {
         if (!el || shots[i].kind !== "scatter") return;
@@ -101,7 +108,7 @@ export default function World() {
           p.style.transform = `translate3d(${cx * (s - 1)}px, ${cy * (s - 1)}px, ${dz}px) scale(${s})`;
         });
       });
-      const tl = buildTimeline(shots, widths);
+      const tl = buildTimeline(shots, widths, fit.current.portrait);
       // Each line is "on stage" from just past the middle of the flight towards it
       // until just before the middle of the flight away from it.
       const travels = tl.segs.filter((g) => g.travel && g.shot >= 0);
@@ -181,7 +188,8 @@ export default function World() {
       const s = started ? scrollY / vh.current : 0;
       const { pose, seg, u } = sample(tl.segs, s, reduced);
       const t = worldTransform(pose);
-      w.style.transform = t;
+      // the whole scene is laid out in reference-frame pixels and scaled to the screen
+      w.style.transform = `scale(${fit.current.k}) ${t}`;
       scene.camYaw = pose.ry;
       scene.camPitch = pose.rx;
       // How fast the camera is actually moving (it stops when she stops scrolling),
@@ -311,7 +319,7 @@ export default function World() {
               <Deck record={record} />
             </div>
           </div>
-          <div className="item crate-item" style={{ transform: itemTransform(CRATE_POSE), visibility: started ? "hidden" : "visible" }}>
+          <div className="item crate-item" style={{ transform: itemTransform(cratePose(frame.portrait)), visibility: started ? "hidden" : "visible" }}>
             <Crate records={experiences} picked={picking} onPick={(r, el) => choose(r, el)} />
           </div>
           {shots.map((sh, i) => (

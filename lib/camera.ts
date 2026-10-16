@@ -154,7 +154,10 @@ const ORBIT = () => [orbit(-55, 0, 0, 250), orbit(-40, -60, 4, 380), orbit(-66, 
 
 export const FINALE_LEN = 3.6;
 
-export function buildTimeline(shots: Shot[], widths: number[]) {
+/** Where the camera starts: framing the turntable (and the CD crate beside or below it). */
+export const deckView = (portrait: boolean): Pose => (portrait ? DECK_VIEW : { ...DECK_VIEW, x: 270, y: 20 });
+
+export function buildTimeline(shots: Shot[], widths: number[], portrait = true) {
   const segs: Segment[] = [];
   let t = 0;
   const push = (from: Pose, to: Pose, len: number, travel: boolean, shot: number, settle?: number) => {
@@ -162,8 +165,9 @@ export function buildTimeline(shots: Shot[], widths: number[]) {
     t += len;
   };
 
-  push(DECK_VIEW, DECK_VIEW, 0.25, false, -1);
-  let prev = DECK_VIEW;
+  const start = deckView(portrait);
+  push(start, start, 0.25, false, -1);
+  let prev = start;
   for (const o of ORBIT()) {
     push(prev, o, 0.9, true, -1);
     prev = o;
@@ -171,10 +175,12 @@ export function buildTimeline(shots: Shot[], widths: number[]) {
 
   shots.forEach((s, i) => {
     const h = holdFor(s.kind, { width: widths[i] ?? 0 });
-    // A line with a character standing under it: frame lower so both fit.
-    const lift = s.beat.cast ? 170 : 0;
-    const a = relative(s.pose, { ...h.from, y: (h.from.y ?? 0) + lift });
-    const b = relative(s.pose, { ...h.to, y: (h.to.y ?? 0) + lift });
+    // A line with a character sticker: on phones it stands under the line, so frame
+    // lower; on wide screens it stands beside it, so frame to the right.
+    const lift = s.beat.cast && portrait ? 170 : 0;
+    const side = s.beat.cast && !portrait ? 230 : 0;
+    const a = relative(s.pose, { ...h.from, x: (h.from.x ?? 0) + side, y: (h.from.y ?? 0) + lift });
+    const b = relative(s.pose, { ...h.to, x: (h.to.x ?? 0) + side, y: (h.to.y ?? 0) + lift });
     const travelLen = i === 0 ? 1.5 : s.kind === "corner" && shots[i - 1]?.kind === "corner" ? 1.1 : 1.0;
     push(prev, a, travelLen, true, i);
     push(a, b, h.len, false, i, h.settle);

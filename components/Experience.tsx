@@ -3,12 +3,21 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import Gate from "./Gate";
+import { measureFrame } from "@/lib/frame";
 
 const Backdrop = dynamic(() => import("./Backdrop"), { ssr: false });
 const World = dynamic(() => import("./World"), { ssr: false });
 
 export default function Experience() {
   const [opened, setOpened] = useState(false);
+
+  // Keep --k and [data-frame] current for everything sized off the reference frames.
+  useEffect(() => {
+    measureFrame();
+    const onResize = () => measureFrame();
+    addEventListener("resize", onResize);
+    return () => removeEventListener("resize", onResize);
+  }, []);
 
   // The gate ends on a full light-green iris; once the world is mounted, the
   // curtain shrinks back to a point to reveal it.
