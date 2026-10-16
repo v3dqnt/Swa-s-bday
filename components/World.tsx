@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import Lenis from "lenis";
+import Backdrop from "./Backdrop";
 import Deck from "./Deck";
 import Finale from "./Finale";
 import KineticLine from "./KineticLine";
@@ -29,6 +30,7 @@ const BASE = "#112409";
 const LABELS = ["01 — hello.", "02 — thank you.", "03 — imagine."];
 const FINALE_LABEL = "04 — happy birthday.";
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const rgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
 
 // The whole experience as one 2.5D world. It opens on the silver turntable, where
 // she picks a record. Once she begins, scrolling flies a camera: first orbiting the
@@ -176,6 +178,8 @@ export default function World() {
       const { pose, seg, u } = sample(tl.segs, s, reduced);
       const t = worldTransform(pose);
       w.style.transform = t;
+      scene.camYaw = pose.ry;
+      scene.camPitch = pose.rx;
       w.style.opacity = reduced && seg.travel && started ? Math.abs(1 - 2 * u).toFixed(3) : "1";
 
       const m = new DOMMatrix(t);
@@ -216,6 +220,8 @@ export default function World() {
         const inFinale = reached >= shots.length;
         const tone = inFinale || reached < 0 ? BASE : shots[reached].tone ?? BASE;
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
+        scene.tone = rgb(tone);
+        scene.world = inFinale ? "city" : reached < 0 ? "abstract" : shots[reached].scene;
         if (label.current) label.current.textContent = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
         const passed = shots.slice(0, reached + 1).flatMap((sh) => (sh.cue ? [sh.cue] : [])) as Cue[];
         soundtrack.follow(inFinale ? [...passed, "finale"] : passed.length ? passed : ["hello"]);
@@ -255,6 +261,7 @@ export default function World() {
 
   return (
     <div ref={root} className="world-root">
+      <Backdrop />
       <div className="stage">
         <div ref={world} className="world">
           <div ref={deckItem} className="item" style={{ transform: itemTransform(ORIGIN) }}>

@@ -1,4 +1,4 @@
-import type { Beat, Cue, Row } from "@/content/story";
+import type { Beat, Cue, Row, Scene } from "@/content/story";
 
 // A 2.5D camera rig for CSS 3D. Everything lives in one "world"; the camera is a
 // pose (position + Euler rotation, degrees). Items are placed with
@@ -54,6 +54,7 @@ export type Shot = {
   pose: Pose; // where the line lives in the world
   cue?: Cue;
   tone?: string;
+  scene: Scene;
 };
 
 const CYCLE: Kind[] = ["straight", "floor", "yawL", "rise", "roll", "yawR", "ceiling"];
@@ -69,9 +70,11 @@ export function layoutShots(chapters: Row[][]): Shot[] {
   const shots: Shot[] = [];
   let at = { x: 0, y: -260, z: -1900 };
   let n = 0;
+  let scene: Scene = "abstract";
 
   chapters.forEach((rows, chapter) => {
     for (const row of rows) {
+      if (row.scene) scene = row.scene;
       if ("row" in row) {
         // A corner: panels on the walls around one eye point; the camera turns in place.
         const first = { ...at, rx: 0, ry: 0, rz: 0 };
@@ -79,7 +82,7 @@ export function layoutShots(chapters: Row[][]): Shot[] {
         row.row.forEach((beat, k) => {
           const th = (-90 * k * Math.PI) / 180;
           const pose = { x: eye.x - PERSPECTIVE * Math.sin(th), y: eye.y, z: eye.z - PERSPECTIVE * Math.cos(th), rx: 0, ry: -90 * k, rz: 0 };
-          shots.push({ beat, kind: "corner", chapter, pose, cue: k === 0 ? row.cue : undefined, tone: row.tone });
+          shots.push({ beat, kind: "corner", chapter, pose, cue: k === 0 ? row.cue : undefined, tone: row.tone, scene });
         });
         const last = shots[shots.length - 1].pose;
         at = { x: last.x + 1400, y: last.y - 200, z: last.z - 1800 };
@@ -106,7 +109,7 @@ export function layoutShots(chapters: Row[][]): Shot[] {
       if (kind === "roll") pose.rz = noise(n, 1) > 0 ? 16 : -16;
       if (kind === "straight" || kind === "title") pose.rz = noise(n, 2) * 5;
 
-      shots.push({ beat, kind, chapter, pose, cue: beat.cue, tone: beat.tone });
+      shots.push({ beat, kind, chapter, pose, cue: beat.cue, tone: beat.tone, scene });
       at = {
         x: at.x + noise(n, 3) * 900,
         y: at.y + noise(n, 4) * 500,

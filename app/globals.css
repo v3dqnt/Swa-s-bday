@@ -22,7 +22,16 @@ button { font: inherit; font-size: 1.05rem; font-weight: 700; letter-spacing: -0
 button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 
 /* ── 2.5D world ────────────────────────────────────────────── */
-.stage { position: fixed; inset: 0; perspective: 1000px; perspective-origin: 50% 50%; overflow: hidden; pointer-events: none; }
+/* living background (WebGPU), with a CSS gradient + SVG grain fallback */
+.backdrop, .backdrop-fallback { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.backdrop-fallback {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E"),
+    radial-gradient(60% 45% at 25% 20%, rgba(143, 207, 114, 0.22), transparent 70%),
+    radial-gradient(55% 50% at 85% 40%, rgba(242, 238, 214, 0.08), transparent 70%),
+    radial-gradient(70% 50% at 50% 95%, rgba(0, 0, 0, 0.45), transparent 70%);
+}
+.stage { position: fixed; inset: 0; z-index: 1; perspective: 1000px; perspective-origin: 50% 50%; overflow: hidden; pointer-events: none; }
 .world { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
 /* No opacity/will-change: opacity here: either one flattens the 3D subtree in Chrome. */
 .item { position: absolute; left: 0; top: 0; transform-origin: 0 0; transform-style: preserve-3d; }
@@ -35,6 +44,18 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .kind-scatter .beat, .kind-scatter .beat span { transform-style: preserve-3d; backface-visibility: visible; }
 .kind-scatter .word { display: inline-block; }
 .kind-scatter .mask { overflow: visible; }
+
+/* ── Extruded 3D type: stepped depth in greens, then a soft drop shadow ── */
+.item .beat .piece, .picker-title .piece, .gate-title .piece {
+  text-shadow:
+    0 0.012em 0 #dcd8bf, 0 0.024em 0 #bccba4, 0 0.036em 0 #a3bf8b, 0 0.048em 0 #8cb075,
+    0 0.06em 0 #76a061, 0 0.072em 0 #618e4f, 0 0.084em 0 #4e7b40, 0 0.096em 0 #3d6832,
+    0 0.11em 0 #2c5425, 0 0.2em 0.22em rgba(0, 0, 0, 0.5);
+}
+.item .beat.soft .piece { text-shadow: 0 0.02em 0 #a9b896, 0 0.04em 0 #7f9a6b, 0 0.06em 0 #5b7a4b, 0 0.14em 0.16em rgba(0, 0, 0, 0.45); }
+.item .beat .hl .piece { text-shadow: none; }
+.hl-bg { box-shadow: 0 0.05em 0 #6fae55, 0 0.09em 0 #4e7b40, 0 0.18em 0.2em rgba(0, 0, 0, 0.4); }
+.underline { box-shadow: 0 3px 0 #4e7b40, 0 8px 12px rgba(0, 0, 0, 0.4); }
 
 /* ── Motion graphics ───────────────────────────────────────── */
 .item .mask { overflow: visible; }
