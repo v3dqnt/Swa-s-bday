@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import Lenis from "lenis";
-import Backdrop from "./Backdrop";
 import Crate from "./Crate";
 import Deck from "./Deck";
 import Finale from "./Finale";
@@ -240,7 +239,7 @@ export default function World() {
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         scene.tone = rgb(tone);
         gsap.to(document.documentElement, { "--tone": tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
-        scene.world = inFinale ? "city" : reached < 0 ? "abstract" : shots[reached].scene;
+        scene.world = inFinale ? "city" : reached < 0 ? "bokeh" : shots[reached].scene;
         if (label.current) label.current.textContent = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
         const passed = shots.slice(0, reached + 1).flatMap((sh) => (sh.cue ? [sh.cue] : [])) as Cue[];
         soundtrack.follow(inFinale ? [...passed, "finale"] : passed.length ? passed : ["hello"]);
@@ -305,7 +304,6 @@ export default function World() {
 
   return (
     <div ref={root} className="world-root">
-      <Backdrop />
       <div className="stage">
         <div ref={world} className="world">
           <div ref={deckItem} className="item" style={{ transform: itemTransform(ORIGIN) }}>
@@ -355,9 +353,6 @@ export default function World() {
         <div className="wipe-diag" />
       </div>
 
-      {/* one grain + vignette pass over text, garnish and background alike */}
-      <div className="film" aria-hidden="true" />
-      <div className="vignette" aria-hidden="true" />
 
       <div className="flying-disc" aria-hidden="true" />
 

@@ -5,9 +5,9 @@ import { plain } from "./KineticLine";
 // arrives: hearts, stars, sparkles, rings, squiggles and confetti. Each piece sits
 // at its own depth inside the line's 3D item, so it parallaxes as the camera moves.
 
-type Shape = "heart" | "star" | "sparkle" | "ring" | "squiggle" | "dot";
+export type Shape = "heart" | "star" | "sparkle" | "ring" | "squiggle" | "dot";
 
-const paths: Record<Shape, React.ReactNode> = {
+export const paths: Record<Shape, React.ReactNode> = {
   heart: <path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" />,
   star: <path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z" />,
   sparkle: <path d="M12 1.5c.8 5.6 3.9 9.7 10.5 10.5-6.6.8-9.7 4.9-10.5 10.5C11.2 16.9 8.1 12.8 1.5 12c6.6-.8 9.7-4.9 10.5-10.5z" />,

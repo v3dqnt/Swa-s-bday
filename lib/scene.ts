@@ -7,7 +7,7 @@ export const scene = {
   finaleActive: false, // finale section is on screen
   // background targets (the background eases towards these)
   tone: [0.067, 0.141, 0.035] as [number, number, number],
-  world: "abstract" as Scene,
+  world: "bokeh" as Scene,
   camYaw: 0,
   camPitch: 0,
   focus: 0, // a line is on screen, 0..1
