@@ -1,24 +1,49 @@
-:root { --bg: #0d0614; --fg: #fff4f0; --accent: #ff8c99; }
+:root {
+  --bg: #07140f;        /* near-black forest green */
+  --green: #0f3d2e;     /* majestic dark green */
+  --emerald: #1e5a43;
+  --beige: #e8dcc4;
+  --sand: #cdbb98;
+  --gold: #c9a96e;
+  --bar: #030a07;
+}
 * { box-sizing: border-box; margin: 0; }
-html, body { background: var(--bg); color: var(--fg); font-family: Georgia, serif; min-height: 100dvh; }
-.gate { min-height: 100dvh; display: grid; place-items: center; }
-.gate-ui { position: relative; z-index: 1; text-align: center; display: grid; gap: 1.5rem; padding: 1rem; margin-top: 40vh; }
-.gate-ui p { font-size: clamp(1.25rem, 5vw, 2rem); }
-button { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--accent); border-radius: 999px; padding: 0.75rem 2rem; cursor: pointer; }
-button:hover { background: var(--accent); color: var(--bg); }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-.orb-fallback { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, #ff8c99 0, #3a1030 12%, #0d0614 45%); animation: pulse 3s ease-in-out infinite; }
-@keyframes pulse { 50% { opacity: 0.8; } }
-.cine { position: fixed; inset: 0; display: grid; place-items: center; z-index: 2; cursor: pointer; padding: 0 1.5rem; }
-.bar { position: absolute; left: 0; right: 0; height: 11vh; background: #000; }
+html, body { background: var(--bg); color: var(--beige); font-family: "Cormorant Garamond", Georgia, serif; }
+body { min-height: 100svh; }
+::selection { background: var(--gold); color: var(--bg); }
+
+.backdrop, .orb-fallback { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.orb-fallback { background: radial-gradient(circle at 50% 50%, var(--beige) 0, var(--emerald) 10%, var(--green) 24%, var(--bg) 55%); animation: pulse 4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.85; } }
+
+.gate { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; }
+.gate-ui { text-align: center; display: grid; gap: 1.75rem; padding: 1rem; margin-top: 42vh; }
+.gate-ui p { font-size: clamp(1.4rem, 5.5vw, 2.2rem); font-style: italic; }
+button { font: inherit; font-size: 1.1rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--beige); background: rgba(7, 20, 15, 0.4); border: 1px solid var(--sand); border-radius: 999px; padding: 0.8rem 2.4rem; cursor: pointer; transition: background 0.4s, color 0.4s; justify-self: center; }
+button:hover, button:focus-visible { background: var(--beige); color: var(--green); outline: none; }
+
+.story { position: relative; z-index: 1; }
+.bar { position: fixed; left: 0; right: 0; height: 10svh; background: var(--bar); z-index: 5; pointer-events: none; }
 .bar.top { top: 0; } .bar.bottom { bottom: 0; }
-.beat { opacity: 0; max-width: 28ch; text-align: center; font-size: clamp(1.4rem, 5.5vw, 2.4rem); line-height: 1.35; text-shadow: 0 2px 24px rgba(0,0,0,.6); }
-.beat.title { font-size: clamp(2rem, 9vw, 4rem); letter-spacing: .02em; max-width: 14ch; }
-.beat.soft { font-style: italic; opacity: 0; color: #f3d6d2; }
-.finale { position: fixed; inset: 0; overflow: hidden; }
-.finale-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.finale-fallback { position: absolute; inset: 0; background: linear-gradient(#050618, #2a1038 55%, #c4581f 62%, #0a0a1c 63%); }
-.duo { position: absolute; left: 50%; bottom: -2vh; width: min(52vw, 300px); transform: translateX(-50%); opacity: 0; filter: drop-shadow(0 0 7px rgba(255,170,90,.55)); animation: rise 3s ease-out 3s forwards; }
-.finale-caption { position: absolute; top: 9vh; left: 0; right: 0; text-align: center; font-size: clamp(1.2rem, 4.5vw, 1.8rem); font-style: italic; opacity: 0; text-shadow: 0 2px 20px rgba(0,0,0,.7); animation: fadein 3s ease-out 8s forwards; }
-@keyframes rise { from { opacity: 0; transform: translate(-50%, 24px); } to { opacity: 1; transform: translate(-50%, 0); } }
-@keyframes fadein { to { opacity: 1; } }
+.beat-sec { position: relative; }
+.sticky { position: sticky; top: 0; height: 100svh; display: grid; place-items: center; padding: 0 1.5rem; }
+.beat { opacity: 0; max-width: 26ch; text-align: center; font-size: clamp(1.6rem, 6vw, 2.8rem); font-weight: 400; line-height: 1.3; text-shadow: 0 2px 28px rgba(3, 10, 7, 0.8); will-change: opacity, transform, filter; }
+.beat.title { font-size: clamp(2.4rem, 11vw, 5rem); font-weight: 500; letter-spacing: 0.01em; max-width: 13ch; color: #f2ead9; }
+.beat.soft { font-style: italic; color: var(--sand); }
+.hint { position: absolute; bottom: 14svh; font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sand); opacity: 0; animation: hint 2s ease-out 2s forwards; }
+.hint::after { content: ""; display: block; width: 1px; height: 2.5rem; margin: 0.75rem auto 0; background: linear-gradient(var(--sand), transparent); animation: drip 2.4s ease-in-out infinite; }
+@keyframes hint { to { opacity: 0.8; } }
+@keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+.breath { height: 40svh; }
+
+.finale-sec { height: 400svh; position: relative; }
+.finale-sec .sticky { padding: 0; z-index: 2; }
+.finale { position: absolute; inset: 0; overflow: hidden; }
+.finale-canvas, .finale-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.finale-fallback { background: linear-gradient(#020a06, #0b2a1e 50%, #d9c290 61.5%, #04110b 62%); }
+.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 8svh; width: min(52vw, 300px); opacity: 0; filter: drop-shadow(0 0 7px rgba(232, 220, 196, 0.5)); }
+.finale-caption { position: absolute; top: 15svh; left: 0; right: 0; text-align: center; font-size: clamp(1.5rem, 6vw, 2.4rem); font-style: italic; opacity: 0; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7); }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-fallback, .hint, .hint::after { animation: none; opacity: 0.8; }
+}

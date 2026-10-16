@@ -8,8 +8,8 @@
 - No guilt, no pressure. She can close the page at any point, and nothing tracks or nags her.
 - Short. About 2 minutes. Specific memories beat grand statements.
 
-**Tech:** Next.js on Vercel, vgpu (WebGPU) for the visuals, GSAP for scroll. A CSS fallback is already built for devices without WebGPU.
-**Mood:** Soft and quiet. Dusk and ember colours, slow motion, nothing flashy.
+**Tech:** Next.js on Vercel, vgpu (WebGPU) for the visuals, Lenis smooth scroll + GSAP ScrollTrigger so the whole story is driven by scrolling. CSS fallback for devices without WebGPU.
+**Mood:** Majestic dark green (her favourite) with beige and soft gold. Cormorant Garamond serif. Slow, quiet motion.
 
 ---
 
