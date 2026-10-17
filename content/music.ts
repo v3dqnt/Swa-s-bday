@@ -5,6 +5,10 @@ import type { Cue } from "./story";
 // to that cue's track. A cue with no track keeps the previous song playing.
 //
 // Put the mp3 files in public/audio/<record id>/ and point to them here.
+// Every record ends on the same song for the fireworks scene, starting at 2:20.
+// "#t=<seconds>" sets where a track starts (and loops back to).
+const FINALE = "/audio/finale.mp3#t=140";
+
 export type Experience = {
   id: string;
   title: string;
@@ -29,7 +33,7 @@ export const experiences: Experience[] = [
       thanks: "/audio/golden-hour/3.mp3",
       hard: "/audio/golden-hour/4.mp3",
       memories: "/audio/golden-hour/5.mp3",
-      finale: "/audio/golden-hour/6.mp3",
+      finale: FINALE,
     },
   },
   {
@@ -45,7 +49,7 @@ export const experiences: Experience[] = [
       thanks: "/audio/midnight/3.mp3",
       hard: "/audio/midnight/4.mp3",
       memories: "/audio/midnight/5.mp3",
-      finale: "/audio/midnight/6.mp3",
+      finale: FINALE,
     },
   },
   {
@@ -59,7 +63,7 @@ export const experiences: Experience[] = [
       hello: "/audio/soft-piano/1.mp3",
       thanks: "/audio/soft-piano/2.mp3",
       hard: "/audio/soft-piano/3.mp3",
-      finale: "/audio/soft-piano/4.mp3",
+      finale: FINALE,
     },
   },
 ];

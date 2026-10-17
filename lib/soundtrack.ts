@@ -56,8 +56,15 @@ class Soundtrack {
     const ctx = this.ctx!;
     this.fadeOut();
     const el = new Audio(src);
-    el.loop = true;
     el.preload = "auto";
+    // A "#t=<seconds>" start offset: the browser seeks there itself; loop back to it too.
+    const start = Number(src.match(/#t=(\d+(?:\.\d+)?)/)?.[1] ?? 0);
+    el.loop = !start;
+    if (start)
+      el.addEventListener("ended", () => {
+        el.currentTime = start;
+        el.play().catch(() => {});
+      });
     const gain = ctx.createGain();
     gain.gain.value = 0;
     ctx.createMediaElementSource(el).connect(gain).connect(this.master!);
