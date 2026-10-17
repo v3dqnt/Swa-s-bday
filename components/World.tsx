@@ -260,10 +260,14 @@ export default function World() {
       finaleEl.style.opacity = clamp01(q / 0.4).toFixed(3);
       finaleEl.style.visibility = q > 0 ? "visible" : "hidden";
       const f = q / FINALE_LEN;
-      const duo = clamp01((f - 0.3) / 0.25);
-      gsap.set(".duo", { opacity: duo, y: 48 * (1 - duo) });
+      gsap.set(".finale-art-wrap", { scale: 1 + 0.08 * clamp01(f) }); // slow push-in
       const cap = clamp01((f - 0.6) / 0.2);
-      gsap.set(".finale-caption .piece", { yPercent: 115 * (1 - cap * (2 - cap)) });
+      // the caption writes itself on, line by line, like handwriting
+      const caps = root.current!.querySelectorAll<HTMLElement>(".cap-line");
+      caps.forEach((el, i) => {
+        const w = clamp01(cap * caps.length - i);
+        el.style.clipPath = `inset(-30% ${(100 - w * 100).toFixed(1)}% -30% -5%)`;
+      });
 
       gsap.set(".progress", { scaleX: clamp01(s / tl.total) });
       gsap.set(".hint", { opacity: started ? clamp01(1 - s / 0.15) : 0 });
@@ -328,7 +332,7 @@ export default function World() {
               ref={(el) => {
                 items.current[i] = el;
               }}
-              className={`item kind-${sh.kind} fx-${fxFor(sh, i)}`}
+              className={`item kind-${sh.kind} fx-${fxFor(sh, i)}${/happy birthday/i.test(sh.beat.text) ? " script" : ""}`}
               style={{ transform: itemTransform(sh.pose), visibility: "hidden" }}
             >
               <KineticLine className={`beat ${sh.beat.style ?? ""}`} text={sh.beat.text} letters={fxFor(sh, i) === "letters"} />

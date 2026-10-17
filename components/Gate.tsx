@@ -100,7 +100,7 @@ export default function Gate({ onOpen }: { onOpen: () => void }) {
           <div className="envelope">
             <div className="env-back" />
             <div className="env-card">
-              <span>happy birthday.</span>
+              <span className="script-text">Happy birthday!</span>
             </div>
             <div className="env-pocket">
               <span className="env-to">for swara.</span>

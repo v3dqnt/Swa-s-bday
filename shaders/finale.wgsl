@@ -2,7 +2,7 @@
 // trails and burst into golden chrysanthemums, magenta/violet peonies, curly cyan
 // willows and small yellow rings; the clouds and ridges pick up their light.
 // uv is top-origin, so y grows downward.
-struct Params { time: f32, reveal: f32, texel: vec2f }
+struct Params { time: f32, reveal: f32, texel: vec2f, opts: vec4f } // opts.x: 1 = fireworks-only overlay
 @group(0) @binding(0) var<uniform> params: Params;
 
 const BG = vec3f(0.067, 0.141, 0.035); // her green, so the scene opens out of the story
@@ -123,6 +123,15 @@ fn fireworks(p: vec2f, asp: f32, time: f32) -> Light {
   let asp = params.texel.y / params.texel.x;
   let time = params.time;
   let p = vec2f((uv.x - 0.5) * asp, uv.y);
+
+  // Overlay mode (phones): only the bursts, on black, for screen-blending over the
+  // illustration's painted sky; kept to the upper sky so it never glows over the couple.
+  if (params.opts.x > 0.5) {
+    let fwo = fireworks(p, asp, time);
+    var c = fwo.col * smoothstep(0.72, 0.3, uv.y);
+    c = 1.0 - exp(-c * 1.4);
+    return vec4f(c * params.reveal, 1.0);
+  }
 
   // sky: deep indigo above, warmer purple-magenta near the mountains
   var col = mix(vec3f(0.025, 0.022, 0.09), vec3f(0.16, 0.08, 0.24), smoothstep(0.0, 1.0, uv.y));

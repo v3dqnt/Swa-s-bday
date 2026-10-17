@@ -132,6 +132,12 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .kind-scatter .word { display: inline-block; }
 .kind-scatter .mask { overflow: visible; }
 
+/* ── Handwriting (Caveat) for the birthday wishes ───────────── */
+.script-text, .item.script .beat { font-family: var(--font-script), cursive; text-transform: none; letter-spacing: 0; font-weight: 700; }
+.item.script .beat { font-size: calc(var(--t-zoom) * 1.45); line-height: 0.95; }
+.item.script .beat .piece { text-shadow: 0 0 0.35em color-mix(in srgb, #8fcf72 45%, transparent), 0 0.04em 0 var(--x5), 0 0.08em 0 var(--x8), 0 0.18em 0.2em var(--xs); }
+.env-card .script-text { font-size: calc(var(--g-env) * var(--k) * 0.11); font-weight: 700; color: #1e5a43; letter-spacing: 0; }
+
 /* ── Extruded 3D type: stepped depth in greens, then a soft drop shadow ── */
 .item .beat .piece, .picker-title .piece, .gate-title .piece {
   text-shadow:
@@ -199,13 +205,17 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 .finale { position: absolute; inset: 0; overflow: hidden; }
 .finale-canvas, .finale-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
 .finale-fallback { background: radial-gradient(40% 25% at 50% 40%, rgba(255, 190, 90, 0.35), transparent 70%), radial-gradient(25% 18% at 20% 20%, rgba(255, 90, 216, 0.3), transparent 70%), radial-gradient(25% 18% at 80% 25%, rgba(95, 242, 238, 0.28), transparent 70%), linear-gradient(#06051a, #2a1440 80%, #0a0612 88%); }
-/* firework light on the couple, cycling through the burst colours */
-@property --fw { syntax: "<color>"; inherits: false; initial-value: #ff5ad8; }
-@keyframes fwlight { 0%, 100% { --fw: #ff5ad8; } 33% { --fw: #5ff2ee; } 66% { --fw: #ffc45a; } }
-.duo { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 8svh; height: min(46svh, calc(var(--f-duo) * var(--k))); width: auto; opacity: 0;
-  filter: drop-shadow(0 0 1.5px var(--fw)) drop-shadow(0 0 20px color-mix(in srgb, var(--fw) 45%, transparent)) brightness(0.92);
-  animation: fwlight 6s ease-in-out infinite; }
-.finale-caption { position: absolute; top: 14svh; left: 0; right: 0; padding: 0 1.5rem; text-align: center; font-size: calc(var(--f-cap) * var(--k)); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
+/* The ending illustration. Phones: fills the screen, live bursts screen-blended over
+   its sky. Wide screens: a centred panel whose edges dissolve into the live sky. */
+.finale-art-wrap { position: absolute; inset: 0; z-index: 1; transform-origin: 50% 62%; }
+.finale-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
+:root:not([data-frame="landscape"]) .finale-canvas { z-index: 2; mix-blend-mode: screen; }
+:root[data-frame="landscape"] .finale-art { left: 50%; width: auto; transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%); }
+.finale-caption { position: absolute; z-index: 3; top: 9svh; left: 0; right: 0; padding: 0 1.5rem; text-align: center; font-size: calc(var(--f-cap) * var(--k) * 1.45); line-height: 0.95;
+  color: #fff8e6; text-shadow: 0 0 14px rgba(255, 196, 110, 0.75), 0 0 34px rgba(255, 140, 210, 0.35), 0 3px 10px rgba(0, 0, 0, 0.55); }
+.cap-line { display: block; clip-path: inset(-30% 100% -30% -5%); }
 
 
 /* ── Record picker (screen-space UI around the turntable) ───── */

@@ -5,13 +5,6 @@ import { getGpu } from "@/lib/gpu";
 import finaleShader from "@/shaders/finale.wgsl";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import KineticLine from "./KineticLine";
-
-// The two of them holding hands on the ridge, lit by the fireworks.
-function Couple() {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img className="duo" src="/characters/together.png" alt="" draggable={false} />;
-}
 
 // Festival-night scene. Fade-in is driven by scroll (scene.finale); fireworks run on time.
 export default function Finale() {
@@ -30,14 +23,17 @@ export default function Finale() {
         if (cancelled) return;
         const target = surface(gpu, canvas, { dpr: [1, 1.5] });
         const night = effect(gpu, finaleShader, {
-          set: { params: { time: 0, reveal: 0, texel: target.texelSize } },
+          set: { params: { time: 0, reveal: 0, texel: target.texelSize, opts: [0, 0, 0, 0] } },
         });
         target.onResize(() => night.set({ params: { texel: target.texelSize } }));
         const time = clock(gpu);
         const loop = frameLoop(gpu, (frame) => {
           if (!scene.finaleActive) return;
           const r = scene.finale;
-          night.set({ params: { time: reduced ? 3 : time.time, reveal: r * r * (3 - 2 * r) } });
+          // Phones: the illustration fills the screen and the bursts overlay its sky.
+          // Wide screens: the full night sky sits behind the illustration panel.
+          const overlay = document.documentElement.dataset.frame !== "landscape" ? 1 : 0;
+          night.set({ params: { time: reduced ? 3 : time.time, reveal: r * r * (3 - 2 * r), opts: [overlay, 0, 0, 0] } });
           frame.pass(target, night);
         });
         stop = () => loop.stop();
@@ -55,8 +51,14 @@ export default function Finale() {
   return (
     <div className="finale">
       {fallback ? <div className="finale-fallback" /> : <canvas ref={ref} className="finale-canvas" />}
-      <Couple />
-      <KineticLine className="finale-caption" text="happy birthday, swara." />
+      <div className="finale-art-wrap">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="finale-art" src="/characters/finale.jpg" alt="The two of us holding hands under the fireworks" draggable={false} />
+      </div>
+      <p className="finale-caption script-text" aria-label="Happy birthday, Swara.">
+        <span className="cap-line">Happy birthday,</span>
+        <span className="cap-line">Swara.</span>
+      </p>
     </div>
   );
 }
