@@ -26,7 +26,7 @@ type Mood = { shapes: Shape[]; confetti: boolean };
 function moodOf(shot: Shot): Mood {
   const t = plain(shot.beat.text).toLowerCase();
   if (shot.kind === "scatter" || /angry|never remember|harden/.test(t)) return { shapes: [], confetti: false };
-  if (/birthday|special day|graced|look at you|proud/.test(t)) return { shapes: ["star", "sparkle", "heart", "sparkle", "star", "dot"], confetti: true };
+  if (/birthday|special day|graced|look at you|proud|bang/.test(t)) return { shapes: ["star", "sparkle", "heart", "sparkle", "star", "dot"], confetti: true };
   if (/love|warmth|beautiful|lovely|awe|thank|grateful|happiness|bright face/.test(t)) return { shapes: ["heart", "sparkle", "heart", "ring", "heart", "dot"], confetti: false };
   if (/pop|dreamy|vividly|giggling/.test(t)) return { shapes: ["sparkle", "ring", "star", "squiggle", "sparkle", "dot", "heart"], confetti: true };
   return { shapes: ["sparkle", "ring", "squiggle", "dot"], confetti: false };

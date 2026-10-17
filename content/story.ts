@@ -97,9 +97,9 @@ export const story = {
     { text: "Thank you, Swara.", style: "title", layout: "zoom", tone: tone.warm },
   ] as Row[],
 
-  // Chapter 3: lead-in to the imagined ending. Base tone so the finale fades in seamlessly.
+  // Chapter 3: lead-in to the fireworks ending. Base tone so the finale fades in seamlessly.
   imagine: [
-    { text: "This is what my imagination makes of a perfect ending to your birthday.", tone: tone.base, cue: "finale", scene: "city" },
+    { text: "Let's go off with a *bang,* shall we?", layout: "zoom", tone: tone.base, cue: "finale", scene: "city" },
   ] as Row[],
 
 };

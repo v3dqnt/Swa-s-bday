@@ -28,7 +28,7 @@ import {
 } from "@/lib/camera";
 
 const BASE = "#112409";
-const LABELS = ["01 — hello.", "02 — thank you.", "03 — imagine."];
+const LABELS = ["01 — hello.", "02 — thank you.", "03 — with a bang."];
 const FINALE_LABEL = "04 — happy birthday.";
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 // The CD crate sits below the turntable on phones and beside it on wide screens,
