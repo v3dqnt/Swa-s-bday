@@ -55,10 +55,7 @@ export default function Finale() {
           if (!scene.finaleActive) return;
           const r = scene.finale;
           if (!reduced && r > 0.5) burstSounds(ages, time.time);
-          // Phones: the illustration fills the screen and the bursts overlay its sky.
-          // Wide screens: the full night sky sits behind the illustration panel.
-          const overlay = document.documentElement.dataset.frame !== "landscape" ? 1 : 0;
-          night.set({ params: { time: reduced ? 3 : time.time, reveal: r * r * (3 - 2 * r), opts: [overlay, 0, 0, 0] } });
+          night.set({ params: { time: reduced ? 3 : time.time, reveal: r * r * (3 - 2 * r), opts: [0, 0, 0, 0] } });
           frame.pass(target, night);
         });
         stop = () => loop.stop();
@@ -78,7 +75,7 @@ export default function Finale() {
       {fallback ? <div className="finale-fallback" /> : <canvas ref={ref} className="finale-canvas" />}
       <div className="finale-art-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="finale-art" src="/characters/finale.jpg" alt="The two of us holding hands under the fireworks" draggable={false} />
+        <img className="finale-art" src="/characters/finale-cutout.webp" alt="The two of us holding hands under the fireworks" draggable={false} />
       </div>
       <p className="finale-caption script-text" aria-label="Happy birthday, Swara.">
         <span className="cap-line">Happy birthday,</span>
