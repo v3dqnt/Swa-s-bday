@@ -19,51 +19,36 @@ export type Experience = {
   tracks: Partial<Record<Cue, string>>;
 };
 
+// Files live in public/audio/ under their original names (spaces and all).
+const song = (file: string) => `/audio/${encodeURIComponent(file)}`;
+
 export const experiences: Experience[] = [
   {
-    id: "golden-hour",
-    title: "golden hour.",
-    note: "warm and sweet.",
+    id: "best-part",
+    title: "best part.",
+    note: "H.E.R. ft. Daniel Caesar",
     label: "#c9a96e",
     sleeve: "#e4d3a8",
     ink: "#112409",
-    tracks: {
-      hello: "/audio/golden-hour/1.mp3",
-      birthday: "/audio/golden-hour/2.mp3",
-      thanks: "/audio/golden-hour/3.mp3",
-      hard: "/audio/golden-hour/4.mp3",
-      memories: "/audio/golden-hour/5.mp3",
-      finale: FINALE,
-    },
+    // one song through the whole story, then the fireworks song
+    tracks: { hello: song("H.E.R. - Best Part (Lyrics) Ft. Daniel Caesar.mp3"), finale: FINALE },
   },
   {
-    id: "midnight",
-    title: "midnight.",
-    note: "slow and a little blue.",
+    id: "sweet",
+    title: "sweet.",
+    note: "Cigarettes After Sex",
     label: "#3d5a73",
     sleeve: "#1d2c38",
     ink: "#f2eed6",
-    tracks: {
-      hello: "/audio/midnight/1.mp3",
-      birthday: "/audio/midnight/2.mp3",
-      thanks: "/audio/midnight/3.mp3",
-      hard: "/audio/midnight/4.mp3",
-      memories: "/audio/midnight/5.mp3",
-      finale: FINALE,
-    },
+    tracks: { hello: song("Sweet - Cigarettes After Sex.mp3"), finale: FINALE },
   },
   {
-    id: "soft-piano",
-    title: "soft piano.",
-    note: "quiet, just keys.",
+    id: "te-amo",
+    title: "te amo.",
+    note: "from Dum Maaro Dum",
     label: "#f2eed6",
     sleeve: "#5a6b4a",
     ink: "#f2eed6",
-    tracks: {
-      hello: "/audio/soft-piano/1.mp3",
-      thanks: "/audio/soft-piano/2.mp3",
-      hard: "/audio/soft-piano/3.mp3",
-      finale: FINALE,
-    },
+    tracks: { hello: song("Te Amo Dum Maaro Dum (full song) Bipasha Basu, Rana Dagubati.mp3"), finale: FINALE },
   },
 ];
