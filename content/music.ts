@@ -5,7 +5,7 @@ import type { Cue } from "./story";
 // to that cue's track. A cue with no track keeps the previous song playing.
 //
 // Put the mp3 files in public/audio/<record id>/ and point to them here.
-// Every record ends on the same song for the fireworks scene, starting at 2:20.
+// Every record ends on the same song for the fireworks scene, starting at 0:17.
 // "#t=<seconds>" sets where a track starts (and loops back to).
 const FINALE = "/audio/finale.mp3#t=17";
 
