@@ -6,6 +6,7 @@ import finaleShader from "@/shaders/finale.wgsl";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { caption, type CaptionLayout } from "@/content/caption";
+import { resolve } from "@/lib/preload";
 
 
 // The caption as letter outlines; World draws them on with drawOn() (lib/mograph.ts).
@@ -63,7 +64,7 @@ export default function Finale() {
       {fallback ? <div className="finale-fallback" /> : <canvas ref={ref} className="finale-canvas" />}
       <div className="finale-art-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="finale-art" src="/characters/finale-cutout.webp" alt="The two of us holding hands under the fireworks" draggable={false} />
+        <img className="finale-art" src={resolve("/characters/finale-cutout.webp")} alt="The two of us holding hands under the fireworks" draggable={false} />
       </div>
       <div className="finale-caption" role="img" aria-label="Happy birthday, Swara.">
         <Handwriting layout={caption.wide} className="cap-wide" />

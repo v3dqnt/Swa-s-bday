@@ -1,15 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import Gate from "./Gate";
+import Loader from "./Loader";
 import { measureFrame } from "@/lib/frame";
 
 const Backdrop = dynamic(() => import("./Backdrop"), { ssr: false });
 const World = dynamic(() => import("./World"), { ssr: false });
 
 export default function Experience() {
+  const [ready, setReady] = useState(false);
   const [opened, setOpened] = useState(false);
+  const onLoaded = useCallback(() => setReady(true), []);
 
   // Keep --k and [data-frame] current for everything sized off the reference frames.
   useEffect(() => {
@@ -33,7 +36,8 @@ export default function Experience() {
   return (
     <>
       <Backdrop />
-      {opened ? <World /> : <Gate onOpen={() => setOpened(true)} />}
+      {/* everything downloads first, then the envelope */}
+      {!ready ? <Loader onDone={onLoaded} /> : opened ? <World /> : <Gate onOpen={() => setOpened(true)} />}
       <div className="curtain" aria-hidden="true" />
       {/* one grain + vignette pass over everything, so text and scene read as one image */}
       <div className="film" aria-hidden="true" />

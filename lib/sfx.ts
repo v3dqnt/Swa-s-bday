@@ -1,4 +1,5 @@
 import { soundtrack } from "./soundtrack";
+import { resolve } from "./preload";
 
 // Synthesized sound effects (Web Audio, no files): sparkles for highlighted words,
 // pops and blips for things landing, booms for big moments, whooshes, swishes and
@@ -79,7 +80,7 @@ class Sfx {
     }
     if (!ctx || level <= 0 || this.ambLoading) return;
     this.ambLoading = true;
-    fetch("/audio/fireworks-distant.mp3")
+    fetch(resolve("/audio/fireworks-distant.mp3"))
       .then((r) => r.arrayBuffer())
       .then((data) => ctx.decodeAudioData(data))
       .then((buffer) => {

@@ -1,5 +1,6 @@
 import type { Cue } from "@/content/story";
 import type { Experience } from "@/content/music";
+import { resolve } from "./preload";
 
 const FADE = 2.5; // seconds
 
@@ -69,11 +70,13 @@ class Soundtrack {
   private crossfade(src: string) {
     const ctx = this.ctx!;
     this.fadeOut();
-    const el = new Audio(src);
+    // the preloaded in-memory copy (see lib/preload.ts), so playback never waits on the network
+    const el = new Audio(resolve(src));
     el.preload = "auto";
-    // A "#t=<seconds>" start offset: the browser seeks there itself; loop back to it too.
+    // A "#t=<seconds>" start offset: seek there before playing, and loop back to it too.
     const start = Number(src.match(/#t=(\d+(?:\.\d+)?)/)?.[1] ?? 0);
     el.loop = !start;
+    if (start) el.addEventListener("loadedmetadata", () => (el.currentTime = start), { once: true });
     if (start)
       el.addEventListener("ended", () => {
         el.currentTime = start;

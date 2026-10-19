@@ -15,6 +15,7 @@ import { sfx } from "@/lib/sfx";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { measureFrame, type Frame } from "@/lib/frame";
+import { resolve } from "@/lib/preload";
 import {
   FINALE_LEN,
   ORIGIN,
@@ -384,7 +385,7 @@ export default function World() {
                 <span className={`cast cast-${sh.beat.cast}`}>
                   <span className="cast-in">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/characters/${sh.beat.cast}.png`} alt="" draggable={false} />
+                    <img src={resolve(`/characters/${sh.beat.cast}.png`)} alt="" draggable={false} />
                   </span>
                 </span>
               )}

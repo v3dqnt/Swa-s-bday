@@ -51,6 +51,19 @@ body { min-height: 100svh; text-transform: lowercase; -webkit-font-smoothing: an
 .piece { display: inline-block; will-change: transform; }
 
 /* ── Gate: banners, name, 3D envelope with a wax seal ───────── */
+/* ── Loading screen ─────────────────────────────────────────── */
+.loader { position: fixed; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 14px; color: var(--cream); text-align: center; padding: 0 1.5rem; }
+.loader-heart { width: 64px; height: 64px; overflow: visible; animation: loaderbeat 1.6s ease-in-out infinite; }
+.loader-heart .outline path { fill: none; stroke: var(--leaf); stroke-width: 1.4; }
+.loader-heart .fill path { fill: var(--leaf); }
+@keyframes loaderbeat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.12); } 24% { transform: scale(0.98); } 36% { transform: scale(1.06); } }
+.loader-text { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; text-transform: lowercase; margin: 6px 0 0; }
+.loader-bar { width: min(240px, 60vw); height: 2px; background: color-mix(in srgb, var(--cream) 18%, transparent); border-radius: 2px; overflow: hidden; }
+.loader-bar span { display: block; height: 100%; background: var(--leaf); transform-origin: left; transition: transform 0.3s ease-out; }
+.loader-pct { font-size: 12px; opacity: 0.6; margin: 0; font-variant-numeric: tabular-nums; }
+.loader-skip { margin-top: 10px; background: none; border: 1px solid color-mix(in srgb, var(--cream) 35%, transparent); color: var(--cream); border-radius: 99px; padding: 8px 16px; font: inherit; font-size: 13px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .loader-heart { animation: none; } }
+
 .gate { position: relative; z-index: 1; min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; align-items: center;
   padding: 9svh 1.25rem 6svh; text-align: center; overflow: hidden; }
 .gate-copy { position: relative; z-index: 2; display: grid; justify-items: center; gap: 0.6rem; }
