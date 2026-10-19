@@ -262,13 +262,15 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
   -webkit-mask: radial-gradient(circle, transparent 0 calc(50% - 4px), #000 calc(50% - 3px));
           mask: radial-gradient(circle, transparent 0 calc(50% - 4px), #000 calc(50% - 3px)); }
 .mat { position: absolute; inset: 4%; border-radius: 50%; background: repeating-radial-gradient(circle, #232323 0 3px, #1b1b1b 3px 6px); }
-.vinyl { position: absolute; inset: 4%; border-radius: 50%;
+.vinyl { position: absolute; inset: 4%; border-radius: 50%; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); }
+.disc { position: absolute; inset: 0; border-radius: 50%;
   background:
     radial-gradient(circle, transparent 0 34%, rgba(0,0,0,0.6) 34.5%, transparent 36%),
-    repeating-radial-gradient(circle, #101010 0 1px, #1d1d1d 1.6px 2.6px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); }
-.vinyl.spin { animation: spin 1.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+    conic-gradient(from 30deg, transparent 0 20%, rgba(255,255,255,0.05) 24%, transparent 28% 70%, rgba(255,255,255,0.04) 74%, transparent 78%),
+    repeating-radial-gradient(circle, #101010 0 1px, #1d1d1d 1.6px 2.6px); }
+/* 33⅓ rpm */
+.disc.spin { animation: platter-spin 1.8s linear infinite; }
+@keyframes platter-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .label { position: absolute; inset: 33%; border-radius: 50%; display: grid; place-items: center;
   background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.25), transparent 60%), var(--label);
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15); }

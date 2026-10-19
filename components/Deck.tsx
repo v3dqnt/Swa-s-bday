@@ -52,9 +52,12 @@ export default function Deck({ record }: { record: Experience | null | undefined
         <div className="strobe" />
         <div className="mat" />
         {record && (
-          <div key={record.id} className={`vinyl ${playing ? "spin" : ""}`} style={{ ["--label" as string]: record.label }}>
-            <div className="label">
-              <span>{record.title}</span>
+          <div key={record.id} className="vinyl" style={{ ["--label" as string]: record.label }}>
+            {/* the drop-in animates .vinyl; the disc inside turns on its own */}
+            <div className={`disc ${playing ? "spin" : ""}`}>
+              <div className="label">
+                <span>{record.title}</span>
+              </div>
             </div>
           </div>
         )}

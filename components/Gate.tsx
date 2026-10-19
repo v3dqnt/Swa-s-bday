@@ -67,6 +67,8 @@ export default function Gate({ onOpen }: { onOpen: () => void }) {
       sfx.pop(1.1);
       sfx.sparkle(5);
     }, 60);
+    setTimeout(() => sfx.boom(0.5), 520); // the seal bursts
+    setTimeout(() => sfx.chime(1046.5), 1100); // the card slides out
     setTimeout(() => sfx.whoosh(1.0), 1700); // the iris sweep
     if (reduced) return onOpen();
     const seal = root.current!.querySelector(".seal")!.getBoundingClientRect();

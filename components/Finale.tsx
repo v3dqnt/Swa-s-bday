@@ -5,6 +5,29 @@ import { getGpu } from "@/lib/gpu";
 import finaleShader from "@/shaders/finale.wgsl";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { sfx } from "@/lib/sfx";
+
+// Mirrors the burst schedule in finale.wgsl so each explosion on screen gets a
+// distant boom (panned to where it is), and the trailing kinds a crackle.
+const RISE = 0.9;
+const hash = (n: number) => {
+  const x = Math.sin(n * 127.1) * 43758.5453;
+  return x - Math.floor(x);
+};
+function burstSounds(prev: number[], t: number) {
+  for (let b = 0; b < 10; b++) {
+    const period = 3.6 + b * 0.33;
+    const cyc = t / period + b * 0.37;
+    const age = (cyc - Math.floor(cyc)) * period;
+    if (prev[b] < RISE && age >= RISE) {
+      const seed = b * 17.3 + Math.floor(cyc) * 9.1;
+      let kind = Math.floor(hash(seed + 7) * 5);
+      if (kind === 4) kind = 1;
+      sfx.firework((hash(seed) - 0.5) * 2, kind === 3 ? 0.5 : 0.75 + 0.25 * hash(seed + 5), kind === 0 || kind === 2);
+    }
+    prev[b] = age;
+  }
+}
 
 // Festival-night scene. Fade-in is driven by scroll (scene.finale); fireworks run on time.
 export default function Finale() {
@@ -27,9 +50,11 @@ export default function Finale() {
         });
         target.onResize(() => night.set({ params: { texel: target.texelSize } }));
         const time = clock(gpu);
+        const ages = new Array(10).fill(RISE);
         const loop = frameLoop(gpu, (frame) => {
           if (!scene.finaleActive) return;
           const r = scene.finale;
+          if (!reduced && r > 0.5) burstSounds(ages, time.time);
           // Phones: the illustration fills the screen and the bursts overlay its sky.
           // Wide screens: the full night sky sits behind the illustration panel.
           const overlay = document.documentElement.dataset.frame !== "landscape" ? 1 : 0;

@@ -76,7 +76,13 @@ export default function World() {
 
   // Drop the record onto the platter whenever a new one is chosen.
   useEffect(() => {
-    if (record) gsap.fromTo(".vinyl", { scale: 1.12, y: -18, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.7, ease: "bounce.out" });
+    if (!record) return;
+    gsap.fromTo(".vinyl", { scale: 1.12, y: -18, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.7, ease: "bounce.out" });
+    sfx.thud(0.8); // the record drops onto the platter…
+    const needle = gsap.delayedCall(0.6, () => sfx.tick()); // …and the stylus touches down
+    return () => {
+      needle.kill();
+    };
   }, [record]);
 
   // Measure text, set up anamorphic "scatter" words, and build the camera timeline.
@@ -157,6 +163,8 @@ export default function World() {
     const onStage = shots.map(() => false);
     let last: Pose | null = null;
     let lastS = 0;
+    let worldChanges = 0;
+    let chimed = false;
     const finaleEl = root.current!.querySelector<HTMLElement>(".finale-layer")!;
 
     // Opacity flattens 3D in Chrome, so items that must stay 3D (the deck, the
@@ -247,16 +255,24 @@ export default function World() {
           const newChapter = prev && prev.chapter !== sh.chapter;
           if (reached > 0 && (newChapter || reached % 5 === 0)) playWipe(WIPES[Math.floor(reached / 5) % WIPES.length]);
           if (sh.beat.style === "title") punch();
+          // the camera flies through a zoom line: a low boom, a big one for the "bang"
+          if (sh.kind === "zoom") sfx.boom(/bang/i.test(sh.beat.text) ? 1.5 : 0.9);
         }
         const inFinale = reached >= shots.length;
+        if (inFinale && forward && started && !reduced) sfx.boom(1.3); // the night opens up
         const tone = inFinale || reached < 0 ? BASE : shots[reached].tone ?? BASE;
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         scene.tone = rgb(tone);
         gsap.to(document.documentElement, { "--tone": tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         const world = inFinale ? "city" : reached < 0 ? "bokeh" : shots[reached].scene;
-        if (world !== scene.world && started && !reduced) sfx.whoosh(1.2); // the background changes
+        // the background changes: alternate air and glitter so it never sounds the same twice
+        if (world !== scene.world && started && !reduced) (++worldChanges % 2 ? sfx.whoosh(1.2) : sfx.shimmer(1.6));
         scene.world = world;
-        if (label.current) label.current.textContent = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
+        const text = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
+        if (label.current && label.current.textContent !== text) {
+          if (started && forward) sfx.tick();
+          label.current.textContent = text;
+        }
         const passed = shots.slice(0, reached + 1).flatMap((sh) => (sh.cue ? [sh.cue] : [])) as Cue[];
         soundtrack.follow(inFinale ? [...passed, "finale"] : passed.length ? passed : ["hello"]);
       }
@@ -270,6 +286,11 @@ export default function World() {
       const f = q / FINALE_LEN;
       gsap.set(".finale-art-wrap", { scale: 1 + 0.08 * clamp01(f) }); // slow push-in
       const cap = clamp01((f - 0.6) / 0.2);
+      if (cap > 0.05 && !chimed) {
+        chimed = true;
+        sfx.chime(); // the handwriting begins
+        gsap.delayedCall(0.9, () => sfx.sparkle(5));
+      } else if (cap === 0) chimed = false;
       // the caption writes itself on, line by line, like handwriting
       const caps = root.current!.querySelectorAll<HTMLElement>(".cap-line");
       caps.forEach((el, i) => {

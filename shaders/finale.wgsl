@@ -1,6 +1,8 @@
 // The ending: a purple festival night over the mountains. Rockets rise on wavy
 // trails and burst into golden chrysanthemums, magenta/violet peonies, curly cyan
 // willows and small yellow rings; the clouds and ridges pick up their light.
+// A moon and the Milky Way hang over a hillside village with lit windows, and
+// glowing paper sky lanterns drift up out of it.
 // uv is top-origin, so y grows downward.
 struct Params { time: f32, reveal: f32, texel: vec2f, opts: vec4f } // opts.x: 1 = fireworks-only overlay
 @group(0) @binding(0) var<uniform> params: Params;
@@ -44,6 +46,77 @@ fn seg(p: vec2f, a: vec2f, b: vec2f) -> f32 {
   let ab = b - a;
   let h = clamp(dot(p - a, ab) / max(dot(ab, ab), 1.0e-6), 0.0, 1.0);
   return length(p - a - ab * h);
+}
+
+// ── Scenery ──────────────────────────────────────────────────────────
+
+const LAMP = vec3f(1.0, 0.62, 0.24); // warm candlelight
+
+fn ridgeFar(x: f32) -> f32 { return 0.8 + 0.035 * sin(x * 3.0 + 2.0) + 0.02 * sin(x * 8.1); }
+fn ridgeNear(x: f32) -> f32 { return 0.88 + 0.03 * sin(x * 2.3 + 1.0) + 0.018 * sin(x * 7.3) + 0.008 * sin(x * 19.0); }
+
+// A row of little houses standing on a ridge: pitched roofs with flared eaves and
+// warm windows that flicker now and then. x: silhouette mask, y: window light.
+fn village(p: vec2f, near: bool, time: f32, aa: f32) -> vec2f {
+  let sc = select(0.55, 1.0, near);
+  let seed = select(11.0, 37.0, near);
+  let w = 0.12 * sc;
+  let cell = floor(p.x / w);
+  let lx = p.x - cell * w;
+  let h0 = hash(cell * 3.7 + seed);
+  if (h0 < 0.35) { return vec2f(0.0); }
+  let xs = w * (0.12 + 0.12 * hash(cell + 1.3 + seed));
+  let xe = w * (0.72 + 0.14 * hash(cell + 2.9 + seed));
+  let mid = 0.5 * (xs + xe);
+  let half = 0.5 * (xe - xs);
+  let gx = (cell + 0.5) * w;
+  let base = select(ridgeFar(gx), ridgeNear(gx), near) + 0.012 * sc;
+  let wallH = (0.016 + 0.012 * hash(cell + 4.1 + seed)) * sc;
+  let wallTop = base - wallH;
+  let roofH = half * (0.4 + 0.25 * hash(cell + 5.7 + seed));
+  let over = 0.28 * half;
+  // roof line: a slightly concave pitch (temple-like flare at the eaves)
+  let t = clamp(abs(lx - mid) / (half + over), 0.0, 1.0);
+  let roofY = wallTop - roofH * pow(1.0 - t, 1.6) + 0.003 * sc;
+  let inRoof = select(0.0, smoothstep(roofY, roofY + aa, p.y), abs(lx - mid) < half + over && p.y < wallTop + 0.005 * sc);
+  let inWall = select(0.0, smoothstep(wallTop, wallTop + aa, p.y), lx > xs && lx < xe && p.y < base + 0.02 * sc);
+  let mask = max(inRoof, inWall);
+  // windows: a row of two or three panes
+  let cols = select(3.0, 4.0, hash(cell + 6.6 + seed) > 0.5);
+  let wx = (lx - xs) / (xe - xs) * cols;
+  let col = floor(wx);
+  let fx = fract(wx);
+  let wy = (p.y - wallTop) / wallH;
+  let pane = step(0.28, fx) * step(fx, 0.72) * step(0.3, wy) * step(wy, 0.7) * inWall;
+  let lit = step(0.3, hash(cell * 7.1 + col * 1.9 + seed));
+  let flick = 0.82 + 0.18 * sin(time * (2.0 + 3.0 * hash(cell + col)) + col * 4.0);
+  return vec2f(mask, pane * lit * flick);
+}
+
+// Glowing paper lanterns released from the village, drifting up and shrinking
+// into the distance with a candle flicker.
+fn lanterns(p: vec2f, asp: f32, time: f32) -> vec3f {
+  var c = vec3f(0.0);
+  for (var i = 0; i < 22; i++) {
+    let fi = f32(i);
+    let depth = hash(fi * 5.3 + 1.0); // 0 far, 1 near
+    let speed = 0.012 + 0.018 * depth;
+    let k = fract(time * speed + hash(fi * 2.1));
+    let y = 0.92 - k * 1.05;
+    let x = (hash(fi * 9.7) - 0.5) * asp * 0.96 + 0.05 * sin(time * 0.21 + fi * 1.7) * k + 0.08 * k * (hash(fi + 3.3) - 0.5);
+    let size = (0.006 + 0.012 * depth) * mix(1.0, 0.45, k);
+    let q = (p - vec2f(x, y)) / size;
+    let flick = 0.8 + 0.12 * sin(time * 9.0 + fi * 3.0) + 0.08 * sin(time * 23.0 + fi);
+    let fade = smoothstep(0.0, 0.06, k) * smoothstep(1.0, 0.75, k) * mix(0.55, 1.0, depth);
+    // paper body: slightly wider at the top, brightest near the flame at its base
+    let halfW = 0.62 - 0.14 * q.y;
+    let d = max(abs(q.x) - halfW, abs(q.y) - 1.0);
+    let body = smoothstep(0.15, -0.1, d);
+    let shade = mix(vec3f(0.95, 0.35, 0.1), vec3f(1.0, 0.86, 0.55), smoothstep(-1.0, 0.9, q.y)) * (1.0 - 0.35 * abs(q.x));
+    let r2 = dot(q - vec2f(0.0, 0.3), q - vec2f(0.0, 0.3));
+    c += (shade * body * 1.1 + LAMP * exp(-r2 * 0.12) * 0.22) * flick * fade;
+  }
+  return c;
 }
 
 struct Light { col: vec3f, glow: vec3f }
@@ -128,7 +201,7 @@ fn fireworks(p: vec2f, asp: f32, time: f32) -> Light {
   // illustration's painted sky; kept to the upper sky so it never glows over the couple.
   if (params.opts.x > 0.5) {
     let fwo = fireworks(p, asp, time);
-    var c = fwo.col * smoothstep(0.72, 0.3, uv.y);
+    var c = (fwo.col + lanterns(p, asp, time) * 0.8) * smoothstep(0.72, 0.3, uv.y);
     c = 1.0 - exp(-c * 1.4);
     return vec4f(c * params.reveal, 1.0);
   }
@@ -144,6 +217,24 @@ fn fireworks(p: vec2f, asp: f32, time: f32) -> Light {
   let f = fract(g) - 0.5;
   col += vec3f(step(0.975, s) * exp(-dot(f, f) * 50.0) * (0.55 + 0.45 * sin(time * 2.0 + s * 60.0)) * (1.0 - uv.y * 0.8));
 
+  // the Milky Way: a soft diagonal band of dust and fine stars
+  let mwd = abs(dot(p - vec2f(0.0, 0.25), normalize(vec2f(0.45, 1.0))));
+  let band2 = exp(-mwd * mwd * 30.0) * smoothstep(0.75, 0.1, uv.y);
+  let dust = fbm(p * 5.0 + vec2f(0.0, time * 0.003));
+  col += vec3f(0.42, 0.33, 0.62) * band2 * smoothstep(0.35, 0.8, dust) * 0.32;
+  let g2 = p * 220.0;
+  let s2 = hash2(floor(g2));
+  let f2 = fract(g2) - 0.5;
+  col += vec3f(0.9, 0.85, 1.0) * step(0.93, s2) * exp(-dot(f2, f2) * 40.0) * band2 * 0.6;
+
+  // the moon, with a hazy halo
+  let mc = vec2f(asp * 0.33, 0.15);
+  let mr = 0.036;
+  let md = length(p - mc);
+  let craters = 0.85 + 0.15 * fbm((p - mc) * 60.0);
+  col = mix(col, vec3f(1.0, 0.95, 0.85) * craters, smoothstep(mr, mr - 0.002, md));
+  col += vec3f(0.65, 0.55, 0.8) * exp(-max(md - mr, 0.0) * 14.0) * 0.22 + vec3f(1.0, 0.95, 0.9) * exp(-max(md - mr, 0.0) * 120.0) * 0.25;
+
   let fw = fireworks(p, asp, time);
 
   // drifting clouds, lit by whatever is bursting near them
@@ -155,13 +246,26 @@ fn fireworks(p: vec2f, asp: f32, time: f32) -> Light {
   col += fw.col;
 
   // mountain ridges: a hazy far range and a dark near one, rim-lit by the bursts
-  let far = 0.83 + 0.035 * sin(p.x * 3.0 + 2.0) + 0.02 * sin(p.x * 8.1);
-  let near = 0.88 + 0.03 * sin(p.x * 2.3 + 1.0) + 0.018 * sin(p.x * 7.3) + 0.008 * sin(p.x * 19.0);
+  // with a hazy village on the far ridge and a nearer one on the front hill
+  let aa = params.texel.y * 1.5;
+  let far = ridgeFar(p.x);
+  let near = ridgeNear(p.x);
+  // warm haze rising off the villages
+  col += LAMP * exp(-max(far - uv.y, 0.0) * 22.0) * smoothstep(far - 0.12, far, uv.y) * 0.05;
   if (uv.y > far) { col = mix(col, vec3f(0.12, 0.07, 0.17) + fw.glow * 0.06, 0.85); }
+  let v1 = village(p, false, time, aa);
+  col = mix(col, vec3f(0.08, 0.05, 0.12) + fw.glow * 0.05, v1.x * 0.9);
+  col += LAMP * v1.y * 0.8;
   if (uv.y > near) {
     let rim = smoothstep(0.012, 0.0, uv.y - near);
     col = vec3f(0.035, 0.025, 0.06) + (fw.glow * 0.5 + vec3f(0.5, 0.25, 0.4)) * rim * 0.35;
   }
+  let v2 = village(p, true, time, aa);
+  col = mix(col, vec3f(0.025, 0.018, 0.045) + fw.glow * 0.08, v2.x);
+  col += LAMP * v2.y * 1.1;
+
+  // sky lanterns float in front of everything but the fireworks' light
+  col += lanterns(p, asp, time);
 
   let v = uv - 0.5;
   col *= 1.0 - 0.7 * dot(v, v);

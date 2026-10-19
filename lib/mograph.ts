@@ -28,7 +28,18 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
   const cue = (fn: () => void) => () => {
     if (!tl.reversed()) fn();
   };
-  if (fx !== "none") tl.call(cue(() => sfx.pop(fx === "letters" ? 0.9 : 0.6)), undefined, 0.02);
+  // Each entrance style has its own sound: pops, swishes, blips, shimmers.
+  const enter: Record<TextFx, (() => void) | null> = {
+    letters: () => sfx.pop(0.9),
+    pop: () => sfx.pop(0.6),
+    maskUp: () => sfx.blip(),
+    skew: () => sfx.swish(),
+    blur: () => sfx.shimmer(1.2),
+    none: null,
+  };
+  const sound = enter[fx];
+  if (sound) tl.call(cue(sound), undefined, 0.02);
+  if (fx === "pop" && pieces.length > 1) tl.call(cue(() => sfx.blip(1.5)), undefined, 0.02 + Math.min(pieces.length, 8) * 0.045);
 
   switch (fx) {
     case "letters":
@@ -61,7 +72,7 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
   }
 
   const underline = item.querySelector(".underline");
-  if (underline) tl.fromTo(underline, { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, "<0.1");
+  if (underline) tl.fromTo(underline, { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, "<0.1").call(cue(() => sfx.tick()), undefined, "<");
 
   // Character sticker wipes up from the bottom with a little overshoot.
   const cast = item.querySelector(".cast-in");
@@ -71,7 +82,7 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
       { clipPath: "inset(100% -20% -20% -20%)", y: 60, scale: 0.92 },
       { clipPath: "inset(-20% -20% -20% -20%)", y: 0, scale: 1, duration: 0.9, ease: "back.out(1.6)" },
       0.05
-    ).call(cue(() => sfx.pop(0.8)), undefined, 0.25);
+    ).call(cue(() => sfx.thud(0.9)), undefined, 0.3);
 
   const pops = item.querySelectorAll(".pop");
   if (pops.length) tl.fromTo(pops, { scale: 0, rotate: -140 }, { scale: 1, rotate: 0, duration: 0.7, ease: "back.out(3)", stagger: 0.07 }, 0.15);
@@ -84,7 +95,8 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
       { x: () => r(-280, 280), y: () => r(-240, 40), rotate: () => r(-540, 540), scale: 1, duration: 0.9, ease: "power3.out" },
       0.1
     ).to(confetti, { y: "+=260", rotate: "+=180", opacity: 0, duration: 1.4, ease: "power1.in" }, ">-0.25");
-    tl.call(cue(() => sfx.sparkle(4)), undefined, 0.12);
+    tl.call(cue(() => sfx.firework(Math.random() - 0.5, 0.6, true)), undefined, 0.1);
+    tl.call(cue(() => sfx.sparkle(4)), undefined, 0.35);
   }
   return tl;
 }
@@ -98,7 +110,13 @@ let running: gsap.core.Timeline | null = null;
 
 export function playWipe(kind: WipeKind) {
   running?.progress(1).kill();
-  sfx.whoosh(1.0);
+  if (kind === "heart") {
+    sfx.whoosh(0.9);
+    gsap.delayedCall(0.55, () => sfx.boom(0.7)); // the heart fills the screen
+  } else if (kind === "bars") {
+    [0, 0.05, 0.1, 0.15, 0.2].forEach((d) => gsap.delayedCall(d + 0.25, () => sfx.tick()));
+    sfx.swish();
+  } else sfx.whoosh(1.0);
   const tl = gsap.timeline();
   const closed = "circle(0% at 50% 50%)";
   const open = "circle(80% at 50% 50%)";
@@ -134,5 +152,6 @@ export function playWipe(kind: WipeKind) {
 /** A small zoom kick on the whole frame, like a cut on the beat. */
 export const punch = () => {
   sfx.pop(1.3);
+  sfx.boom(0.6);
   return gsap.fromTo(".stage", { scale: 1.06 }, { scale: 1, duration: 0.55, ease: "expo.out", overwrite: true });
 };
