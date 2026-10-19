@@ -31,6 +31,10 @@ class Sfx {
 
   private out() {
     if (this.quiet) return null;
+    return this.ready();
+  }
+
+  private ready() {
     const o = soundtrack.output();
     if (!o) return null;
     const { ctx, master } = o;
@@ -54,6 +58,44 @@ class Sfx {
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     }
     return ctx;
+  }
+
+  private amb?: { gain: GainNode; level: number };
+  private ambLoading = false;
+
+  /**
+   * The recorded distant fireworks (public/audio/fireworks-distant.mp3, a seamless
+   * loop) as a bed under the finale. level 0..1 follows how far the night scene has
+   * faded in; unlike the one-shots it keeps playing while she scrolls back.
+   */
+  fireworks(level: number) {
+    const ctx = this.ready();
+    if (!ctx) level = 0;
+    if (this.amb) {
+      if (Math.abs(level - this.amb.level) < 0.01) return;
+      this.amb.level = level;
+      this.amb.gain.gain.setTargetAtTime(level * 0.55, this.amb.gain.context.currentTime, 0.25);
+      return;
+    }
+    if (!ctx || level <= 0 || this.ambLoading) return;
+    this.ambLoading = true;
+    fetch("/audio/fireworks-distant.mp3")
+      .then((r) => r.arrayBuffer())
+      .then((data) => ctx.decodeAudioData(data))
+      .then((buffer) => {
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        gain.connect(this.bus!);
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.loop = true;
+        src.connect(gain);
+        src.start();
+        this.amb = { gain, level: -1 };
+      })
+      .catch(() => {
+        this.ambLoading = false;
+      });
   }
 
   /** Rate limit per kind so stacked triggers don't pile up into noise. */

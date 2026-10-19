@@ -282,6 +282,7 @@ export default function World() {
       const q = s - tl.finaleStart;
       scene.finaleActive = q > -0.2;
       scene.finale = clamp01(q / 1.2);
+      sfx.fireworks(started ? scene.finale : 0); // distant fireworks fade in with the night
       finaleEl.style.opacity = clamp01(q / 0.4).toFixed(3);
       finaleEl.style.visibility = q > 0 ? "visible" : "hidden";
       const f = q / FINALE_LEN;
@@ -290,13 +291,19 @@ export default function World() {
       // the caption is written out by hand once she reaches it, and rubbed out if she goes back
       if (cap > 0.05 && !chimed) {
         chimed = true;
-        writing ??= gsap.timeline().add(Array.from(root.current!.querySelectorAll<SVGSVGElement>(".cap-svg"), (svg) => drawOn(svg).play()), 0).pause();
+        writing ??= gsap
+          .timeline()
+          .add(Array.from(root.current!.querySelectorAll<SVGSVGElement>(".cap-svg"), (svg) => drawOn(svg).play()), 0)
+          // then the heart is doodled in one stroke beside them
+          .call(() => !reduced && sfx.scribble(1.3), undefined, "-=0.5")
+          .fromTo(".cap-heart path", { strokeDashoffset: 1.05 }, { strokeDashoffset: 0, duration: 1.4, ease: "power1.inOut" }, "<")
+          .call(() => !reduced && sfx.sparkle(5))
+          .pause();
         if (reduced) writing.progress(1);
         else {
           writing.play(0);
           sfx.chime();
           sfx.scribble(3.2);
-          gsap.delayedCall(3.4, () => sfx.sparkle(5));
         }
       } else if (cap === 0 && chimed) {
         chimed = false;

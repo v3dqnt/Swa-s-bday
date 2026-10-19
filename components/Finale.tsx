@@ -5,30 +5,8 @@ import { getGpu } from "@/lib/gpu";
 import finaleShader from "@/shaders/finale.wgsl";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import { sfx } from "@/lib/sfx";
 import { caption, type CaptionLayout } from "@/content/caption";
 
-// Mirrors the burst schedule in finale.wgsl so each explosion on screen gets a
-// distant boom (panned to where it is), and the trailing kinds a crackle.
-const RISE = 0.9;
-const hash = (n: number) => {
-  const x = Math.sin(n * 127.1) * 43758.5453;
-  return x - Math.floor(x);
-};
-function burstSounds(prev: number[], t: number) {
-  for (let b = 0; b < 10; b++) {
-    const period = 3.6 + b * 0.33;
-    const cyc = t / period + b * 0.37;
-    const age = (cyc - Math.floor(cyc)) * period;
-    if (prev[b] < RISE && age >= RISE) {
-      const seed = b * 17.3 + Math.floor(cyc) * 9.1;
-      let kind = Math.floor(hash(seed + 7) * 5);
-      if (kind === 4) kind = 1;
-      sfx.firework((hash(seed) - 0.5) * 2, kind === 3 ? 0.5 : 0.75 + 0.25 * hash(seed + 5), kind === 0 || kind === 2);
-    }
-    prev[b] = age;
-  }
-}
 
 // The caption as letter outlines; World draws them on with drawOn() (lib/mograph.ts).
 function Handwriting({ layout, className }: { layout: CaptionLayout; className: string }) {
@@ -62,11 +40,9 @@ export default function Finale() {
         });
         target.onResize(() => night.set({ params: { texel: target.texelSize } }));
         const time = clock(gpu);
-        const ages = new Array(10).fill(RISE);
         const loop = frameLoop(gpu, (frame) => {
           if (!scene.finaleActive) return;
           const r = scene.finale;
-          if (!reduced && r > 0.5) burstSounds(ages, time.time);
           night.set({ params: { time: reduced ? 3 : time.time, reveal: r * r * (3 - 2 * r), opts: [0, 0, 0, 0] } });
           frame.pass(target, night);
         });
@@ -93,6 +69,14 @@ export default function Finale() {
         <Handwriting layout={caption.wide} className="cap-wide" />
         <Handwriting layout={caption.stacked} className="cap-stacked" />
       </div>
+      {/* a doodled heart balancing the caption on the other side (wide screens);
+          one wobbly stroke with lopsided lobes that overshoots where it closes */}
+      <svg className="cap-heart" viewBox="0 0 200 190" aria-hidden="true">
+        <path
+          pathLength={1}
+          d="M103 171C73 141 19 110 22 63C24 31 61 17 84 39C94 49 98 61 100 71C104 55 113 35 137 26C167 16 190 45 178 83C167 118 129 146 97 177C92 182 89 175 95 168"
+        />
+      </svg>
     </div>
   );
 }

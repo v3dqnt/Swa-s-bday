@@ -221,9 +221,14 @@ button:hover, button:focus-visible { transform: scale(1.06); outline: none; }
 :root[data-frame="landscape"] .cap-svg { width: min(86%, 50svh); }
 .cap-stacked, :root[data-frame="landscape"] .cap-wide { display: none; }
 :root[data-frame="landscape"] .cap-stacked { display: block; }
+.cap-heart { display: none; }
+:root[data-frame="landscape"] .cap-heart { display: block; position: absolute; z-index: 3; right: calc((50vw - 31.5svh - min(26svh, 30vw - 19svh)) / 2); top: 40svh;
+  width: min(26svh, 30vw - 19svh); height: auto; overflow: visible; transform: translateY(-50%) rotate(8deg);
+  filter: drop-shadow(0 0 10px rgba(255, 196, 110, 0.7)) drop-shadow(0 0 26px rgba(255, 140, 210, 0.35)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5)); }
+.cap-heart path { fill: none; stroke: #fff8e6; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 1.2; stroke-dashoffset: 1.05; }
 /* ink: cream fill, with the pen's outline traced first (see drawOn in lib/mograph.ts) */
 .cap-glyph { fill: #fff8e6; fill-opacity: 0; stroke: #fff8e6; stroke-width: 14; stroke-linejoin: round; stroke-linecap: round;
-  stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+  stroke-dasharray: 1 1.2; stroke-dashoffset: 1.05; }
 
 
 /* ── Record picker (screen-space UI around the turntable) ───── */

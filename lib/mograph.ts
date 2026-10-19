@@ -163,7 +163,7 @@ export function drawOn(svg: SVGSVGElement): gsap.core.Timeline {
     const len = lens[i];
     const dur = 0.18 + (len / total) * 3.2;
     // paths carry pathLength="1", so the dash runs 1 → 0 whatever the letter's size
-    tl.fromTo(p, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: dur, ease: "power1.inOut" }, at)
+    tl.fromTo(p, { strokeDashoffset: 1.05 }, { strokeDashoffset: 0, duration: dur, ease: "power1.inOut" }, at)
       .fromTo(p, { fillOpacity: 0 }, { fillOpacity: 1, duration: 0.45, ease: "power2.out" }, at + dur * 0.55);
     at += dur * 0.72;
   });
