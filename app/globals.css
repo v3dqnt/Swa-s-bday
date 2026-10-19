@@ -54,8 +54,8 @@ body { min-height: 100svh; text-transform: lowercase; -webkit-font-smoothing: an
 /* ── Loading screen ─────────────────────────────────────────── */
 .loader { position: fixed; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 14px; color: var(--cream); text-align: center; padding: 0 1.5rem; }
 .loader-heart { width: 64px; height: 64px; overflow: visible; animation: loaderbeat 1.6s ease-in-out infinite; }
-.loader-heart .outline path { fill: none; stroke: var(--leaf); stroke-width: 1.4; }
-.loader-heart .fill path { fill: var(--leaf); }
+.loader-heart .outline { fill: none; stroke: var(--leaf); stroke-width: 1.4; stroke-linejoin: round; }
+.loader-heart .fill { fill: var(--leaf); }
 @keyframes loaderbeat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.12); } 24% { transform: scale(0.98); } 36% { transform: scale(1.06); } }
 .loader-text { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; text-transform: lowercase; margin: 6px 0 0; }
 .loader-bar { width: min(240px, 60vw); height: 2px; background: color-mix(in srgb, var(--cream) 18%, transparent); border-radius: 2px; overflow: hidden; }
