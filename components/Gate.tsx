@@ -5,6 +5,8 @@ import KineticLine from "./KineticLine";
 import { paths, type Shape } from "./Decor";
 import { story } from "@/content/story";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { soundtrack } from "@/lib/soundtrack";
+import { sfx } from "@/lib/sfx";
 
 const ORBIT: Shape[] = ["heart", "sparkle", "star", "heart", "sparkle", "dot", "heart", "ring"];
 const BAND = "happy birthday ✦ swara ✦ ";
@@ -59,6 +61,13 @@ export default function Gate({ onOpen }: { onOpen: () => void }) {
   const open = () => {
     if (opening.current) return;
     opening.current = true;
+    soundtrack.wake(); // this tap unlocks audio
+    // AudioContext resumes asynchronously; give it a beat before the first sounds
+    setTimeout(() => {
+      sfx.pop(1.1);
+      sfx.sparkle(5);
+    }, 60);
+    setTimeout(() => sfx.whoosh(1.0), 1700); // the iris sweep
     if (reduced) return onOpen();
     const seal = root.current!.querySelector(".seal")!.getBoundingClientRect();
     const at = `${seal.left + seal.width / 2}px ${seal.top + seal.height / 2}px`;

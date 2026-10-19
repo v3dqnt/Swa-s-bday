@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import type { Shot } from "./camera";
+import { sfx } from "./sfx";
 
 // Motion-graphics layer: the little edit-style animations that play (in real time,
 // not scrubbed) when the camera arrives at a line, and full-screen mask wipes.
@@ -23,6 +24,11 @@ const r = gsap.utils.random;
 export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
   const tl = gsap.timeline({ paused: true });
   const pieces = item.querySelectorAll<HTMLElement>(".beat .piece");
+  // Sounds only on the way in, never while rewinding when she scrolls back.
+  const cue = (fn: () => void) => () => {
+    if (!tl.reversed()) fn();
+  };
+  if (fx !== "none") tl.call(cue(() => sfx.pop(fx === "letters" ? 0.9 : 0.6)), undefined, 0.02);
 
   switch (fx) {
     case "letters":
@@ -50,6 +56,7 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
   const bars = item.querySelectorAll(".hl-bg");
   if (bars.length) {
     tl.fromTo(bars, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.inOut", stagger: 0.12 }, ">-0.25");
+    tl.call(cue(() => sfx.sparkle(bars.length)), undefined, "<0.15");
     tl.fromTo(item.querySelectorAll(".hl .piece"), { color: "#f2eed6" }, { color: "#112409", duration: 0.2, stagger: 0.12 }, "<0.2");
   }
 
@@ -64,7 +71,7 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
       { clipPath: "inset(100% -20% -20% -20%)", y: 60, scale: 0.92 },
       { clipPath: "inset(-20% -20% -20% -20%)", y: 0, scale: 1, duration: 0.9, ease: "back.out(1.6)" },
       0.05
-    );
+    ).call(cue(() => sfx.pop(0.8)), undefined, 0.25);
 
   const pops = item.querySelectorAll(".pop");
   if (pops.length) tl.fromTo(pops, { scale: 0, rotate: -140 }, { scale: 1, rotate: 0, duration: 0.7, ease: "back.out(3)", stagger: 0.07 }, 0.15);
@@ -77,6 +84,7 @@ export function arrival(item: HTMLElement, fx: TextFx): gsap.core.Timeline {
       { x: () => r(-280, 280), y: () => r(-240, 40), rotate: () => r(-540, 540), scale: 1, duration: 0.9, ease: "power3.out" },
       0.1
     ).to(confetti, { y: "+=260", rotate: "+=180", opacity: 0, duration: 1.4, ease: "power1.in" }, ">-0.25");
+    tl.call(cue(() => sfx.sparkle(4)), undefined, 0.12);
   }
   return tl;
 }
@@ -90,6 +98,7 @@ let running: gsap.core.Timeline | null = null;
 
 export function playWipe(kind: WipeKind) {
   running?.progress(1).kill();
+  sfx.whoosh(1.0);
   const tl = gsap.timeline();
   const closed = "circle(0% at 50% 50%)";
   const open = "circle(80% at 50% 50%)";
@@ -123,4 +132,7 @@ export function playWipe(kind: WipeKind) {
 }
 
 /** A small zoom kick on the whole frame, like a cut on the beat. */
-export const punch = () => gsap.fromTo(".stage", { scale: 1.06 }, { scale: 1, duration: 0.55, ease: "expo.out", overwrite: true });
+export const punch = () => {
+  sfx.pop(1.3);
+  return gsap.fromTo(".stage", { scale: 1.06 }, { scale: 1, duration: 0.55, ease: "expo.out", overwrite: true });
+};

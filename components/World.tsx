@@ -11,6 +11,7 @@ import { WIPES, arrival, fxFor, playWipe, punch } from "@/lib/mograph";
 import { story, type Cue } from "@/content/story";
 import { experiences, type Experience } from "@/content/music";
 import { soundtrack } from "@/lib/soundtrack";
+import { sfx } from "@/lib/sfx";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { measureFrame, type Frame } from "@/lib/frame";
@@ -155,6 +156,7 @@ export default function World() {
     let current = -2;
     const onStage = shots.map(() => false);
     let last: Pose | null = null;
+    let lastS = 0;
     const finaleEl = root.current!.querySelector<HTMLElement>(".finale-layer")!;
 
     // Opacity flattens 3D in Chrome, so items that must stay 3D (the deck, the
@@ -186,6 +188,10 @@ export default function World() {
       const w = world.current;
       if (!tl || !w) return;
       const s = started ? scrollY / vh.current : 0;
+      // sound effects only while moving forward through the story
+      if (s < lastS - 0.002) sfx.quiet = true;
+      else if (s > lastS + 0.002) sfx.quiet = false;
+      lastS = s;
       const { pose, seg, u } = sample(tl.segs, s, reduced);
       const t = worldTransform(pose);
       // the whole scene is laid out in reference-frame pixels and scaled to the screen
@@ -247,7 +253,9 @@ export default function World() {
         gsap.to(document.body, { backgroundColor: tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
         scene.tone = rgb(tone);
         gsap.to(document.documentElement, { "--tone": tone, duration: 1.4, ease: "power2.out", overwrite: "auto" });
-        scene.world = inFinale ? "city" : reached < 0 ? "bokeh" : shots[reached].scene;
+        const world = inFinale ? "city" : reached < 0 ? "bokeh" : shots[reached].scene;
+        if (world !== scene.world && started && !reduced) sfx.whoosh(1.2); // the background changes
+        scene.world = world;
         if (label.current) label.current.textContent = inFinale ? FINALE_LABEL : LABELS[Math.max(0, shots[reached]?.chapter ?? 0)];
         const passed = shots.slice(0, reached + 1).flatMap((sh) => (sh.cue ? [sh.cue] : [])) as Cue[];
         soundtrack.follow(inFinale ? [...passed, "finale"] : passed.length ? passed : ["hello"]);
@@ -290,6 +298,8 @@ export default function World() {
 
     // The case hops out of the crate and spins; its disc slides out and flies in an
     // arc onto the platter, and only then lands as the record on the turntable.
+    sfx.pop(1);
+    gsap.delayedCall(0.3, () => sfx.whoosh(0.8)); // the disc flies to the turntable
     const body = from.querySelector(".cd-body");
     gsap.timeline()
       .to(body, { y: -110, duration: 0.35, ease: "power2.out" })

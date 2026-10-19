@@ -14,12 +14,26 @@ class Soundtrack {
   private record: Experience | null = null;
   muted = false;
 
+  private silent = false;
+
   /** Must be called from a user gesture (tap/click) so audio is allowed to start. */
   select(record: Experience | null) {
     this.record = record;
+    this.silent = record === null; // "no music, just words" also silences sound effects
     if (!record) return this.fadeOut();
     this.unlock();
     this.follow(["hello"]);
+  }
+
+  /** Start audio from a user gesture before a record is chosen (for sound effects). */
+  wake() {
+    this.unlock();
+  }
+
+  /** Where sound effects plug in, or null when sound is off. */
+  output(): { ctx: AudioContext; master: GainNode } | null {
+    if (!this.ctx || !this.master || this.silent || this.muted || this.ctx.state !== "running") return null;
+    return { ctx: this.ctx, master: this.master };
   }
 
   get active() {
