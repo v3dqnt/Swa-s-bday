@@ -7,7 +7,7 @@ import Deck from "./Deck";
 import Finale from "./Finale";
 import KineticLine from "./KineticLine";
 import Decor from "./Decor";
-import { WIPES, arrival, fxFor, playWipe, punch } from "@/lib/mograph";
+import { WIPES, arrival, drawOn, fxFor, playWipe, punch } from "@/lib/mograph";
 import { story, type Cue } from "@/content/story";
 import { experiences, type Experience } from "@/content/music";
 import { soundtrack } from "@/lib/soundtrack";
@@ -165,6 +165,7 @@ export default function World() {
     let lastS = 0;
     let worldChanges = 0;
     let chimed = false;
+    let writing: gsap.core.Timeline | undefined;
     const finaleEl = root.current!.querySelector<HTMLElement>(".finale-layer")!;
 
     // Opacity flattens 3D in Chrome, so items that must stay 3D (the deck, the
@@ -286,17 +287,21 @@ export default function World() {
       const f = q / FINALE_LEN;
       gsap.set(".finale-art-wrap", { scale: 1 + 0.08 * clamp01(f) }); // slow push-in
       const cap = clamp01((f - 0.6) / 0.2);
+      // the caption is written out by hand once she reaches it, and rubbed out if she goes back
       if (cap > 0.05 && !chimed) {
         chimed = true;
-        sfx.chime(); // the handwriting begins
-        gsap.delayedCall(0.9, () => sfx.sparkle(5));
-      } else if (cap === 0) chimed = false;
-      // the caption writes itself on, line by line, like handwriting
-      const caps = root.current!.querySelectorAll<HTMLElement>(".cap-line");
-      caps.forEach((el, i) => {
-        const w = clamp01(cap * caps.length - i);
-        el.style.clipPath = `inset(-30% ${(100 - w * 100).toFixed(1)}% -30% -5%)`;
-      });
+        writing ??= gsap.timeline().add(Array.from(root.current!.querySelectorAll<SVGSVGElement>(".cap-svg"), (svg) => drawOn(svg).play()), 0).pause();
+        if (reduced) writing.progress(1);
+        else {
+          writing.play(0);
+          sfx.chime();
+          sfx.scribble(3.2);
+          gsap.delayedCall(3.4, () => sfx.sparkle(5));
+        }
+      } else if (cap === 0 && chimed) {
+        chimed = false;
+        writing?.pause(0);
+      }
 
       gsap.set(".progress", { scaleX: clamp01(s / tl.total) });
       gsap.set(".hint", { opacity: started ? clamp01(1 - s / 0.15) : 0 });

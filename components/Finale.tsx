@@ -6,6 +6,7 @@ import finaleShader from "@/shaders/finale.wgsl";
 import { scene } from "@/lib/scene";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { sfx } from "@/lib/sfx";
+import { caption, type CaptionLayout } from "@/content/caption";
 
 // Mirrors the burst schedule in finale.wgsl so each explosion on screen gets a
 // distant boom (panned to where it is), and the trailing kinds a crackle.
@@ -27,6 +28,17 @@ function burstSounds(prev: number[], t: number) {
     }
     prev[b] = age;
   }
+}
+
+// The caption as letter outlines; World draws them on with drawOn() (lib/mograph.ts).
+function Handwriting({ layout, className }: { layout: CaptionLayout; className: string }) {
+  return (
+    <svg className={`cap-svg ${className}`} viewBox={layout.viewBox} aria-hidden="true">
+      {layout.glyphs.map((g, i) => (
+        <path key={i} className="cap-glyph" d={g.d} pathLength={1} />
+      ))}
+    </svg>
+  );
 }
 
 // Festival-night scene. Fade-in is driven by scroll (scene.finale); fireworks run on time.
@@ -77,10 +89,10 @@ export default function Finale() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="finale-art" src="/characters/finale-cutout.webp" alt="The two of us holding hands under the fireworks" draggable={false} />
       </div>
-      <p className="finale-caption script-text" aria-label="Happy birthday, Swara.">
-        <span className="cap-line">Happy birthday,</span>
-        <span className="cap-line">Swara.</span>
-      </p>
+      <div className="finale-caption" role="img" aria-label="Happy birthday, Swara.">
+        <Handwriting layout={caption.wide} className="cap-wide" />
+        <Handwriting layout={caption.stacked} className="cap-stacked" />
+      </div>
     </div>
   );
 }

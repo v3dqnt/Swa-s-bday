@@ -357,6 +357,31 @@ class Sfx {
     o.frequency.exponentialRampToValueAtTime(880, t + duration);
   }
 
+  /** A pen scratching across paper: grainy noise with a jittery stroke rhythm. */
+  scribble(duration = 3) {
+    const ctx = this.out();
+    if (!ctx || !this.ok("scribble", 1000)) return;
+    const t = ctx.currentTime;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 1.4;
+    bp.frequency.value = 3200;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    // each little stroke swells and lifts off, at an uneven handwriting pace
+    let at = t;
+    while (at < t + duration) {
+      const len = 0.08 + Math.random() * 0.22;
+      g.gain.linearRampToValueAtTime(0.05 + Math.random() * 0.05, at + len * 0.3);
+      g.gain.linearRampToValueAtTime(0.004, at + len);
+      bp.frequency.setValueAtTime(2400 + Math.random() * 1800, at);
+      at += len + Math.random() * 0.06;
+    }
+    g.gain.linearRampToValueAtTime(0.0001, at + 0.05);
+    this.burst(ctx, t, at - t + 0.1, bp, true);
+    bp.connect(g).connect(this.bus!);
+  }
+
   /** A firework far off: muffled thump, then a sizzle of crackles. `pan` is -1..1. */
   firework(pan = 0, size = 1, crackle = false) {
     const ctx = this.out();

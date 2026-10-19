@@ -149,6 +149,29 @@ export function playWipe(kind: WipeKind) {
   running = tl;
 }
 
+/**
+ * Handwriting: each letter's outline is traced by a "pen" at a steady speed, one
+ * letter after another, and its ink fills in just behind the pen.
+ */
+export function drawOn(svg: SVGSVGElement): gsap.core.Timeline {
+  const paths = Array.from(svg.querySelectorAll<SVGPathElement>("path"));
+  const lens = paths.map((p) => p.getTotalLength());
+  const total = lens.reduce((a, b) => a + b, 0) || 1;
+  const tl = gsap.timeline({ paused: true });
+  let at = 0;
+  paths.forEach((p, i) => {
+    const len = lens[i];
+    const dur = 0.18 + (len / total) * 3.2;
+    // paths carry pathLength="1", so the dash runs 1 → 0 whatever the letter's size
+    tl.fromTo(p, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: dur, ease: "power1.inOut" }, at)
+      .fromTo(p, { fillOpacity: 0 }, { fillOpacity: 1, duration: 0.45, ease: "power2.out" }, at + dur * 0.55);
+    at += dur * 0.72;
+  });
+  // once written, the ink settles and the outline softens into it
+  tl.fromTo(paths, { strokeOpacity: 1 }, { strokeOpacity: 0.35, duration: 0.8, ease: "power1.out" }, ">-0.2");
+  return tl;
+}
+
 /** A small zoom kick on the whole frame, like a cut on the beat. */
 export const punch = () => {
   sfx.pop(1.3);
