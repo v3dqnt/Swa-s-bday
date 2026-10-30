@@ -291,6 +291,23 @@ on a `GainNode`, and drive the level from the scene's fade (`setTargetAtTime`).
 
 ---
 
+## 7b. Time-locked launch (countdown gate)
+
+- **Decide on the server.** `app/page.tsx` is `force-dynamic` and compares `Date.now()`
+  with `UNLOCK_AT` on each request, so changing the device clock can't open it early.
+  The story's code and assets never load before then.
+- The client counts down against the **server's clock**: it receives `serverNow`,
+  computes `skew = serverNow - Date.now()` once, and renders from `serverNow` first so
+  hydration matches. At zero it shows "it's time." and `location.reload()`s into the story.
+- **Rolling odometer digits.** Each digit is a window `height: 1.12em; overflow: hidden`.
+  On change, a column holding [old, new] translates `0 → -1.12em`. Keep `{from, to}` in
+  state (updated during render when the value changes) and key the rolling column by the
+  new value, so 4 Hz re-renders don't restart the roll.
+- Allow a test bypass with `?preview=<PREVIEW_KEY>`; the key lives in an environment
+  variable, never in code.
+- **Check class names are unique.** `.cd-title` was already used by the CD cases, and the
+  two sets of styles clobbered each other. Prefix new features' classes (`cnt-`).
+
 ## 8. Images and character art
 
 - **Cutting a character sheet into stickers.** Pillow flood-fills from the edges to
