@@ -11,9 +11,6 @@ records every technique used here and the pitfalls behind them.
   - `content/story.ts`: all copy and per-line directives (layout, tone, scene, cue, cast).
   - `content/music.ts`: song experiences (CD → tracks per cue), with `#t=` start offsets.
   - `content/caption.ts`: generated glyph outlines for the hand-drawn finale caption.
-  - `content/unlock.ts`: when the site opens (Nov 1, 00:00 IST). Before that `app/page.tsx`
-    (server-checked, dynamic) serves `components/Countdown.tsx`; `/?preview=<PREVIEW_KEY>`
-    opens it early for testing.
 - **lib**
   - `camera.ts`: shots and scroll timeline.
   - `mograph.ts`: arrivals, wipes, punch, `drawOn`.
